@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/articles")
+@RequestMapping("/articles")
 public class BlogApiController {
 
     public final BlogService blogService;

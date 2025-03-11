@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -28,6 +29,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(properties = "server.servlet.context-path=/api")
 class BlogApiControllerTest {
 
     @Autowired
@@ -53,7 +55,7 @@ class BlogApiControllerTest {
     @Test
     public void addArticle() throws Exception {
         // given
-        final String url = "/api/articles";
+        final String url = "/articles";
         final String title = "title123";
         final String content = "content123";
         final ArticleCreateRequest userRequest = new ArticleCreateRequest(title, content);
@@ -78,7 +80,7 @@ class BlogApiControllerTest {
     @Test
     public void findAllArticles() throws Exception {
         // given
-        String url = "/api/articles";
+        String url = "/articles";
         String title = "title1";
         String content = "content1";
 
@@ -102,7 +104,7 @@ class BlogApiControllerTest {
     @Test
     public void findArticle() throws Exception {
         // given
-        String url = "/api/articles/{id}";
+        String url = "/articles/{id}";
         String title = "title1";
         String content = "content1";
 
@@ -126,7 +128,7 @@ class BlogApiControllerTest {
     @Test
     void deleteArticle() throws Exception {
         // given
-        String url = "/api/articles/{id}";
+        String url = "/articles/{id}";
         String title = "title1";
         String content = "content1";
 
@@ -148,7 +150,7 @@ class BlogApiControllerTest {
     @Test
     void updateArticle() throws Exception {
         // given
-        String url = "/api/articles/{id}";
+        String url = "/articles/{id}";
         String title = "title1";
         String content = "content1";
 

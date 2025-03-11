@@ -1,7 +1,6 @@
-# ???? context-path ??
-#server:
-#  servlet:
-#    context-path: /api
+server:
+  servlet:
+    context-path: /api
 
 spring:
   application:
@@ -13,7 +12,7 @@ spring:
       hibernate:
         format_sql: true
 
-    defer_datasource-initialization: true #data.sql ??
+    defer_datasource-initialization: true #data.sql
 
   datasource:
     url: jdbc:h2:mem:testdb
