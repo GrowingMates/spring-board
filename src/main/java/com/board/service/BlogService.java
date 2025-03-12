@@ -47,5 +47,4 @@ public class BlogService {
         return blogRepository.findById(id)
                 .orElseThrow(() -> MyEntityNotFoundException.of(id));
     }
-    
 }
