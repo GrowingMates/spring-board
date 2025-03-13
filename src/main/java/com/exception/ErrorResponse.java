@@ -1,10 +1,11 @@
-package com.board.exception;
+package com.exception;
+
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Getter;
 
 @Getter
 class ErrorResponse {
