@@ -1,6 +1,6 @@
-package com.board.dto;
+package com.board.board.dto;
 
-import com.board.domain.Article;
+import com.board.board.domain.Article;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -1,8 +1,8 @@
-package com.member.controller;
+package com.board.member.controller;
 
-import com.member.dto.MemberSignUpRequest;
-import com.member.dto.MemberSignUpResponse;
-import com.member.service.MemberService;
+import com.board.member.dto.MemberSignUpRequest;
+import com.board.member.dto.MemberSignUpResponse;
+import com.board.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

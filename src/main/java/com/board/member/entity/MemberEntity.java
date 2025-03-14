@@ -1,4 +1,4 @@
-package com.member.entity;
+package com.board.member.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;

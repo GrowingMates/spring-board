@@ -1,11 +1,11 @@
-package com.member.service;
+package com.board.member.service;
 
-import com.member.dto.MemberSignUpRequest;
-import com.member.dto.MemberSignUpResponse;
-import com.member.entity.MemberEntity;
-import com.member.repository.MemberRepository;
+import com.board.exception.SingUpException;
+import com.board.member.dto.MemberSignUpRequest;
+import com.board.member.dto.MemberSignUpResponse;
+import com.board.member.entity.MemberEntity;
+import com.board.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public MemberSignUpResponse signUp(MemberSignUpRequest request) {

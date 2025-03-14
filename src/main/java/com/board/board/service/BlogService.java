@@ -1,10 +1,10 @@
-package com.board.service;
+package com.board.board.service;
 
-import com.board.domain.Article;
-import com.board.dto.ArticleCreateRequest;
-import com.board.dto.ArticleUpdateRequest;
-import com.board.repository.BlogRepository;
-import com.exception.MyEntityNotFoundException;
+import com.board.board.domain.Article;
+import com.board.board.dto.ArticleCreateRequest;
+import com.board.board.dto.ArticleUpdateRequest;
+import com.board.board.repository.BlogRepository;
+import com.board.exception.MyEntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +45,6 @@ public class BlogService {
 
     private Article findArticle(long id) {
         return blogRepository.findById(id)
-                .orElseThrow(() -> MyEntityNotFoundException.of(id));
+                .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }
 }

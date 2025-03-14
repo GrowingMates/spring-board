@@ -1,6 +1,6 @@
-package com.member.repository;
+package com.board.member.repository;
 
-import com.member.entity.MemberEntity;
+import com.board.member.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

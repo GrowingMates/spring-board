@@ -1,4 +1,4 @@
-package com.exception;
+package com.board.exception;
 
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ public class MyEntityNotFoundException extends RuntimeException {
         this.entityId = entityId;
     }
 
-    public static MyEntityNotFoundException of(long entityId) {
+    public static MyEntityNotFoundException from(long entityId) {
         return new MyEntityNotFoundException(
                 ErrorCode.ENTITY_NOT_FOUND,
                 entityId
