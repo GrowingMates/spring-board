@@ -24,4 +24,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, e.getErrorCode().getHttpStatus());
     }
 
+    @ExceptionHandler(SingUpException.class)
+    public ResponseEntity<ErrorResponse> SingUp(SingUpException e) {
+
+        log.error("Error Code: {}, Message: {}, errorMessage: {}",
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage(),
+                e.getErrorMessage(),
+                e);
+
+        ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode());
+        errorResponse.addDetail("errorMessage : ", e.getErrorMessage());
+
+        return new ResponseEntity<>(errorResponse, e.getErrorCode().getHttpStatus());
+    }
+
 }

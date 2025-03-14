@@ -19,15 +19,15 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberSignUpResponse signUp(MemberSignUpRequest request) {
         if (memberRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+            throw SingUpException.from("이미 가입된 이메일입니다.");
         }
         if (memberRepository.findByNickName(request.getNickName()).isPresent()) {
-            throw new IllegalArgumentException("이미 사용중인 닉네임입니다.");
+            throw SingUpException.from("이미 사용중인 닉네임입니다.");
         }
 
         MemberEntity member = MemberEntity.builder()
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .password(request.getPassword()) // 스프링 시큐리티 추가 안해서 암호화 안함
                 .nickName(request.getNickName())
                 .build();
         MemberEntity savedMember = memberRepository.save(member);
