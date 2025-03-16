@@ -1,8 +1,11 @@
 package com.board.member.controller;
 
+import com.board.member.dto.LoginRequest;
+import com.board.member.dto.LoginResponse;
 import com.board.member.dto.MemberSignUpRequest;
 import com.board.member.dto.MemberSignUpResponse;
 import com.board.member.service.MemberService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,5 +24,11 @@ public class MemberController {
     public ResponseEntity<MemberSignUpResponse> signUp(@RequestBody MemberSignUpRequest request) {
         MemberSignUpResponse memberSignUpResponse = memberService.signUp(request);
         return ResponseEntity.ok(memberSignUpResponse);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
+        LoginResponse response = memberService.login(loginRequest);
+        return ResponseEntity.ok(response);
     }
 }

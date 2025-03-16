@@ -1,6 +1,10 @@
 package com.board.member.service;
 
+import com.board.config.jwt.JwtUtil;
 import com.board.exception.SingUpException;
+import com.board.member.domain.Member;
+import com.board.member.dto.LoginRequest;
+import com.board.member.dto.LoginResponse;
 import com.board.member.dto.MemberSignUpRequest;
 import com.board.member.dto.MemberSignUpResponse;
 import com.board.member.entity.MemberEntity;
@@ -16,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
+    private final JwtUtil jwtUtil;
+
+    private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 1시간
 
     @Override
     @Transactional
@@ -40,5 +47,22 @@ public class MemberServiceImpl implements MemberService {
         if (memberRepository.findByNickName(request.getNickName()).isPresent()) {
             throw SingUpException.from(ErrorMessage.NICKNAME_DUPLICATE);
         }
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+
+        MemberEntity memberEntity = memberRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException(ErrorMessage.NOT_CORRECT_LOGIN));
+
+        Member member = new Member(memberEntity);
+
+        if (!member.checkPassword(request.getPassword())) {
+            throw new IllegalArgumentException(ErrorMessage.NOT_CORRECT_LOGIN);
+        }
+        
+        String token = jwtUtil.generateToken(member.getEmail(), ACCESS_TOKEN_EXPIRATION);
+
+        return new LoginResponse(token, ACCESS_TOKEN_EXPIRATION);
     }
 }

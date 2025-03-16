@@ -20,3 +20,7 @@ spring:
   h2:
     console:
       enabled: true
+
+jwt:
+  issuer: "open-my-app"
+  secret_key: Jaeyoon-thank-you-always-Fighting
