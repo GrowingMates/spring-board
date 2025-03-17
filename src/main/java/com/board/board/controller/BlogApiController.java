@@ -20,9 +20,15 @@ import java.util.List;
 public class BlogApiController {
 
     public final BlogService blogService;
+    //private final AuthUtil authUtil;
 
     @PostMapping("")
     public ResponseEntity<ArticleResponse> addArticle(@RequestBody ArticleCreateRequest request) {
+
+        /*if (!authUtil.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }*/
+
         Article savedArticle = blogService.save(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
