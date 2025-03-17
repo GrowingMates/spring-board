@@ -5,7 +5,8 @@ import com.board.member.dto.LoginResponse;
 import com.board.member.dto.MemberSignUpRequest;
 import com.board.member.dto.MemberSignUpResponse;
 import com.board.member.service.MemberService;
-import jakarta.validation.Valid;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,8 +28,15 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
-        LoginResponse response = memberService.login(loginRequest);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        LoginResponse loginResponse = memberService.login(loginRequest);
+
+        Cookie cookie = new Cookie("token", loginResponse.getAccessToken());
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge((int) loginResponse.getExpirationTime());
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(loginResponse);
     }
 }
