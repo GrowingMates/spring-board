@@ -8,5 +8,5 @@ import lombok.RequiredArgsConstructor;
 public class LoginResponse {
 
     private final String accessToken;
-    private final long expiresIn;
+    private final long expirationTime;
 }

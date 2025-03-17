@@ -22,5 +22,5 @@ spring:
       enabled: true
 
 jwt:
-  issuer: "open-my-app"
-  secret_key: Jaeyoon-thank-you-always-Fighting
+  issuer: open-my-app
+  secret_key: open-my-256-bit-secret-key-here-hahaha
