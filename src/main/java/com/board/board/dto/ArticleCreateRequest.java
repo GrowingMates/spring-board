@@ -1,6 +1,5 @@
 package com.board.board.dto;
 
-import com.board.board.domain.Article;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,14 +13,6 @@ public class ArticleCreateRequest {
     private String title;
     private String content;
     private Long memberId;
-
-    public Article toEntity() {
-        return Article.builder()
-                .title(title)
-                .content(content)
-                .build();
-    }
-
 
     public ArticleCreateRequest(String title, String content) {
         this.title = title;

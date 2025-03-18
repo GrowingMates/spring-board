@@ -5,6 +5,8 @@ import com.board.board.dto.ArticleCreateRequest;
 import com.board.board.dto.ArticleUpdateRequest;
 import com.board.board.repository.BlogRepository;
 import com.board.exception.MyEntityNotFoundException;
+import com.board.member.entity.MemberEntity;
+import com.board.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,9 +19,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class BlogService {
 
     private final BlogRepository blogRepository;
+    private final MemberService memberService;
 
     public Article save(ArticleCreateRequest request) {
-        return blogRepository.save(request.toEntity());
+        MemberEntity member = memberService.findById(request.getMemberId());
+
+        return blogRepository.save(Article.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .member(member)
+                .build());
     }
 
     @Transactional(readOnly = true)

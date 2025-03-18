@@ -14,4 +14,6 @@ public interface MemberService {
 
     MemberEntity findByEmail(String email);
 
+    MemberEntity findById(Long id);
+
 }

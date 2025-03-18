@@ -70,4 +70,11 @@ public class MemberServiceImpl implements MemberService {
     public MemberEntity findByEmail(String email) {
         return memberRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("이메일을 찾을 수 없습니다."));
     }
+
+    @Override
+    public MemberEntity findById(Long id) {
+        return memberRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다."));
+    }
+
+
 }

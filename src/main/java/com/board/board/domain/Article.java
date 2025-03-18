@@ -1,14 +1,7 @@
 package com.board.board.domain;
 
 import com.board.member.entity.MemberEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,10 +27,12 @@ public class Article {
     private MemberEntity member;
 
     @Builder
-    public Article(String title, String content) {
+    public Article(String title, String content, MemberEntity member) {
         this.title = title;
         this.content = content;
+        this.member = member;
     }
+
 
     public void update(String title, String content) {
         this.title = title;
