@@ -1,10 +1,18 @@
 package com.board.member.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.board.board.dto.ArticleCreateRequest;
 import com.board.config.jwt.JwtUtil;
 import com.board.member.dto.LoginRequest;
 import com.board.member.dto.MemberSignUpRequest;
 import com.board.member.repository.MemberRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +20,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -58,7 +63,7 @@ class MemberControllerTest {
         String loginJson = objectMapper.writeValueAsString(loginRequest);
 
         // 3. 로그인 후 응답에서 JWT 토큰 검증
-        mockMvc.perform(post("/members/login")
+        MvcResult loginResult = mockMvc.perform(post("/members/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andExpect(status().isOk())
@@ -71,7 +76,23 @@ class MemberControllerTest {
                     String token = objectMapper.readTree(responseBody).get("accessToken").asText(); // accessToken 추출
                     assertThat(jwtUtil.extractEmail(token)).isEqualTo(test_email); // 토큰의 sub(이메일) 검증
                     assertThat(jwtUtil.isTokenValid(token)).isEqualTo(true); // 토큰의 issuer 검증
-                });
+                }).andReturn();
+
+        String tokenCookie = loginResult.getResponse().getCookie("token").getValue();
+        assertThat(jwtUtil.isTokenValid(tokenCookie)).isTrue(); // 쿠키에 담긴 JWT가 정상적인지 검증
+        assertThat(jwtUtil.extractEmail(tokenCookie)).isEqualTo(test_email); // JWT에서 email 추출 및 검증
+
+        // 4️⃣ 글쓰기 요청 (JWT 쿠키 포함)
+        ArticleCreateRequest articleCreateRequest = new ArticleCreateRequest("테스트 제목", "테스트 내용");
+        String postJson = objectMapper.writeValueAsString(articleCreateRequest);
+
+        mockMvc.perform(post("/articles")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(postJson)
+                        .cookie(new Cookie("token", tokenCookie))) // 쿠키를 포함하여 요청
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("테스트 제목"))
+                .andExpect(jsonPath("$.content").value("테스트 내용"));
     }
 
 }

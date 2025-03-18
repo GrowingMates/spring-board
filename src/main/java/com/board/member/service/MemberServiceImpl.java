@@ -60,9 +60,14 @@ public class MemberServiceImpl implements MemberService {
         if (!member.checkPassword(request.getPassword())) {
             throw new IllegalArgumentException(ErrorMessage.NOT_CORRECT_LOGIN);
         }
-        
+
         String token = jwtUtil.generateToken(member.getEmail(), ACCESS_TOKEN_EXPIRATION);
 
         return new LoginResponse(token, ACCESS_TOKEN_EXPIRATION);
+    }
+
+    @Override
+    public MemberEntity findByEmail(String email) {
+        return memberRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("이메일을 찾을 수 없습니다."));
     }
 }
