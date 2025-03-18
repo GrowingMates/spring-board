@@ -5,12 +5,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Arrays;
+
 
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -36,14 +38,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private String getJwtInformation(HttpServletRequest request) {
-
         if (request.getCookies() != null) { // 쿠키에서 jwt 확인
             String cookieToken = Arrays.stream(request.getCookies())
                     .filter(cookie -> COOKIE_NAME.equals(cookie.getName()))
                     .map(Cookie::getValue)
                     .findFirst()
                     .orElse(null);
-            
+
             if (cookieToken != null) {
                 return cookieToken;
             }
