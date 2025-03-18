@@ -12,8 +12,6 @@ spring:
       hibernate:
         format_sql: true
 
-    defer_datasource-initialization: true #data.sql
-
   datasource:
     url: jdbc:h2:mem:testdb
 
