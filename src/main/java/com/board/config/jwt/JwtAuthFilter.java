@@ -28,13 +28,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        if (request.getMethod().equalsIgnoreCase("GET")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = getJwtInformation(request);
         if (token != null && jwtUtil.isTokenValid(token)) {
             String email = jwtUtil.extractEmail(token);
             RequestContextHolder.getRequestAttributes()
                     .setAttribute(AUTHENTICATED_USER, email, RequestAttributes.SCOPE_REQUEST);
+            filterChain.doFilter(request, response);
+            return;
         }
-        filterChain.doFilter(request, response);
+
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized!!!###");
     }
 
     private String getJwtInformation(HttpServletRequest request) {
