@@ -1,17 +1,15 @@
 package com.board.config.filter;
 
-import com.board.config.jwt.JwtAuthFilter;
-import com.board.config.jwt.JwtUtil;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
+/*@Configuration
+@RequiredArgsConstructor
 public class FilterConfig {
 
+    private static final Logger logger = (Logger) LoggerFactory.getLogger(FilterConfig.class);
+    private final JwtUtil jwtUtil;
+
     @Bean
-    public JwtAuthFilter jwtAuthFilter(JwtUtil jwtUtil) {
-        return new JwtAuthFilter(jwtUtil);
+    public JwtAuthFilter jwtAuthFilter() {
+        return new JwtAuthFilter(jwtUtil); // 수동으로 필터 Bean 등록
     }
 
     @Bean
@@ -20,6 +18,7 @@ public class FilterConfig {
         registrationBean.setFilter(jwtAuthFilter);
         registrationBean.addUrlPatterns("/api/*"); // 특정 URL 패턴에만 필터 적용
         registrationBean.setOrder(1); // 우선순위 설정 (낮을수록 먼저 실행)
+        logger.info("222222222222222222222222222222 " + registrationBean + " " + jwtAuthFilter);
         return registrationBean;
     }
-}
+}*/
