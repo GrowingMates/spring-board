@@ -2,8 +2,10 @@ package com.board.member.dto;
 
 import com.board.member.entity.MemberEntity;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public class MemberSignUpResponse {
 
     private final Long id;
