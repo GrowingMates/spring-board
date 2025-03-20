@@ -1,52 +1,156 @@
 package com.board.board.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.board.board.domain.Article;
 import com.board.board.dto.ArticleCreateRequest;
 import com.board.board.repository.BlogRepository;
-import com.board.member.dto.MemberSignUpRequest;
-import com.board.member.dto.MemberSignUpResponse;
+import com.board.config.auth.AuthUtil;
+import com.board.exception.MyEntityNotFoundException;
+import com.board.member.entity.MemberEntity;
 import com.board.member.service.MemberService;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-@SpringBootTest
-@Transactional
+@ExtendWith(MockitoExtension.class)
 class BlogServiceTest {
 
-    @Autowired
+    @InjectMocks
     private BlogService blogService;
 
-    @Autowired
+    @Mock
     private BlogRepository blogRepository;
 
-    @Autowired
+    @Mock
     private MemberService memberService;
 
-    @BeforeEach
-    void setUp() {
-        blogRepository.deleteAll();
+    @Mock
+    private AuthUtil authUtil;
+
+    @Test
+    @DisplayName("Serivce - saveArticle - 성공")
+    void saveArticle_Success() {
+
+        // Given
+        String email = "test@example.com";
+        String password = "1234";
+        String nickName = "cc";
+        MemberEntity member = new MemberEntity(email, password, nickName);
+        ArticleCreateRequest request = new ArticleCreateRequest("title", "content");
+        Article article = Article.builder()
+                .title(request.getTitle())
+                .content(request.getContent())
+                .member(member)
+                .build();
+
+        when(authUtil.getMemberEmail()).thenReturn(email);
+        when(memberService.findByEmail(email)).thenReturn(member);
+        when(blogRepository.save(any(Article.class))).thenReturn(article);
+
+        // When
+        Article savedArticle = blogService.save(request);
+
+        // Then
+        assertNotNull(savedArticle);
+        assertEquals("title", savedArticle.getTitle());
+        assertEquals("content", savedArticle.getContent());
+        assertEquals(member, savedArticle.getMember());
     }
 
     @Test
-    @DisplayName("회원 가입 후 글 작성에 성공한다")
-    void 회원가입_글_작성() {
-        MemberSignUpRequest memberSignUpRequest = new MemberSignUpRequest("testEmail@test.com", "testNickName", "1234");
-        MemberSignUpResponse memberSignUpResponse = memberService.signUp(memberSignUpRequest);
+    @DisplayName("Serivce - findAll - 성공")
+    void findAllArticles_Success() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Article> mockPage = new PageImpl<>(Collections.emptyList());
 
-        String title = "title1";
-        String content = "content1";
-        ArticleCreateRequest request = new ArticleCreateRequest(title, content, memberSignUpResponse.getId());
-        Article result = blogService.save(request);
+        when(blogRepository.findAll(pageable)).thenReturn(mockPage);
+
+        // When
+        Page<Article> result = blogService.findAll(pageable);
+
+        // Then
         assertNotNull(result);
-        assertEquals(title, result.getTitle());
-        assertEquals(content, result.getContent());
-        assertEquals(memberSignUpResponse.getId(), result.getMember().getId());
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Serivce - findById - 성공")
+    void findById_ArticleExists() {
+        // Given
+        Article article = new Article(1L, "title", "content", new MemberEntity());
+        when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
+
+        // When
+        Article foundArticle = blogService.findById(1L);
+
+        // Then
+        assertNotNull(foundArticle);
+        assertEquals(1L, foundArticle.getId());
+        assertEquals("title", foundArticle.getTitle());
+    }
+
+    @Test
+    @DisplayName("Serivce - 없는 정보 조회 시 에러 발생")
+    void findById_ArticleNotFound() {
+        // Given
+        when(blogRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(MyEntityNotFoundException.class, () -> blogService.findById(1L));
+    }
+
+    @Test
+    @DisplayName("Serivce - delete 성공")
+    void deleteArticle_Success() {
+        // Given
+        String email = "test@example.com";
+        MemberEntity member = new MemberEntity(email, "testUser", "nickName");
+        Article article = new Article(1L, "title", "content", member);
+
+        when(authUtil.getMemberEmail()).thenReturn(email);
+        when(memberService.findByEmail(email)).thenReturn(member);
+        when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
+
+        // When
+        blogService.delete(1L);
+
+        // Then
+        verify(blogRepository, times(1)).deleteById(1L);
+    }
+
+
+    @Test
+    @DisplayName("Serivce - 다른 사람 게시글 삭제 시 에러 발생")
+    void deleteArticle_NotAuthor_ThrowsException() {
+        // Given
+        String email = "test@example.com";
+        MemberEntity member = new MemberEntity(1L, email, "1234", "testUser");
+        MemberEntity anotherMember = new MemberEntity(2L, "other@example.com", "1234", "otherUser");
+        Article article = new Article(1L, "title", "content", anotherMember);
+
+        when(authUtil.getMemberEmail()).thenReturn(email);
+        when(memberService.findByEmail(email)).thenReturn(member);
+        when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
+
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> blogService.delete(1L));
     }
 }

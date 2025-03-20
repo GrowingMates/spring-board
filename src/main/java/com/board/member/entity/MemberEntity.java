@@ -42,6 +42,13 @@ public class MemberEntity {
         this.nickName = nickName;
     }
 
+    public MemberEntity(Long id, String email, String password, String nickName) {
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.nickName = nickName;
+    }
+
     @PrePersist
     public void setCreatedAtNow() {
         this.createdAt = LocalDateTime.now();

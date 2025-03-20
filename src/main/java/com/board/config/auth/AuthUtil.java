@@ -8,12 +8,12 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 @Component
 public class AuthUtil {
-    public String getUser() {
+    public String getMemberEmail() {
         return (String) RequestContextHolder.getRequestAttributes()
                 .getAttribute(AUTHENTICATED_USER, RequestAttributes.SCOPE_REQUEST);
     }
 
     public boolean isAuthenticated() {
-        return getUser() != null;
+        return getMemberEmail() != null;
     }
 }
