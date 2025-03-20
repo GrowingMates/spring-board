@@ -1,5 +1,6 @@
 package com.board.board.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,9 @@ import lombok.Setter;
 @Setter
 public class ArticleCreateRequest {
 
+    @NotBlank
     private String title;
+    @NotBlank
     private String content;
     private Long memberId;
 

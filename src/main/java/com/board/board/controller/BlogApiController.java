@@ -5,6 +5,7 @@ import com.board.board.dto.ArticleCreateRequest;
 import com.board.board.dto.ArticleResponse;
 import com.board.board.dto.ArticleUpdateRequest;
 import com.board.board.service.BlogService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,7 @@ public class BlogApiController {
     private final BlogService blogService;
 
     @PostMapping("")
-    public ResponseEntity<ArticleResponse> addArticle(@RequestBody ArticleCreateRequest request) {
+    public ResponseEntity<ArticleResponse> addArticle(@Valid @RequestBody ArticleCreateRequest request) {
         Article savedArticle = blogService.save(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -62,7 +63,7 @@ public class BlogApiController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ArticleResponse> updateArticle(@PathVariable long id,
-                                                         @RequestBody ArticleUpdateRequest request) {
+                                                         @Valid @RequestBody ArticleUpdateRequest request) {
         Article updateArticle = blogService.update(id, request);
 
         return ResponseEntity.ok()
