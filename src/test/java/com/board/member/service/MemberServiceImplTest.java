@@ -1,13 +1,7 @@
 package com.board.member.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import com.board.config.jwt.JwtUtil;
-import com.board.exception.SingUpException;
+import com.board.exception.custom.SignUpException;
 import com.board.member.dto.LoginRequest;
 import com.board.member.dto.LoginResponse;
 import com.board.member.dto.MemberSignUpRequest;
@@ -75,7 +69,7 @@ class MemberServiceImplTest {
         when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
 
         // When & Then
-        assertThrows(SingUpException.class, () -> memberService.signUp(request));
+        assertThrows(SignUpException.class, () -> memberService.signUp(request));
     }
 
     @Test

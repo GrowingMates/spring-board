@@ -44,10 +44,10 @@ public class MemberServiceImpl implements MemberService {
 
     private void validateDuplicate(MemberSignUpRequest request) {
         if (memberRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw SingUpException.from(ErrorMessage.EMAIL_DUPLICATE);
+            throw SignUpException.from(ErrorMessage.EMAIL_DUPLICATE);
         }
         if (memberRepository.findByNickName(request.getNickName()).isPresent()) {
-            throw SingUpException.from(ErrorMessage.NICKNAME_DUPLICATE);
+            throw SignUpException.from(ErrorMessage.NICKNAME_DUPLICATE);
         }
     }
 
@@ -70,12 +70,14 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberEntity findByEmail(String email) {
-        return memberRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("이메일을 찾을 수 없습니다."));
+        return memberRepository.findByEmail(email).orElseThrow(() ->
+                EmailNotFoundException.from(email));
     }
 
     @Override
     public MemberEntity findById(Long id) {
-        return memberRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다."));
+        return memberRepository.findById(id).orElseThrow(() ->
+                MyEntityNotFoundException.from(id));
     }
 
 
