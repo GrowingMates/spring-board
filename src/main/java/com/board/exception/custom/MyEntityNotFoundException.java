@@ -1,5 +1,6 @@
-package com.board.exception;
+package com.board.exception.custom;
 
+import com.board.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter

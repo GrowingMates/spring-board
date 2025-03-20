@@ -1,7 +1,9 @@
 package com.board.member.service;
 
 import com.board.config.jwt.JwtUtil;
-import com.board.exception.SingUpException;
+import com.board.exception.custom.EmailNotFoundException;
+import com.board.exception.custom.MyEntityNotFoundException;
+import com.board.exception.custom.SignUpException;
 import com.board.member.domain.Member;
 import com.board.member.dto.LoginRequest;
 import com.board.member.dto.LoginResponse;
