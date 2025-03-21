@@ -1,12 +1,8 @@
 package com.board.config;
 
-import com.board.board.domain.Article;
 import com.board.board.repository.BlogRepository;
-import com.board.member.entity.MemberEntity;
 import com.board.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -15,7 +11,7 @@ public class DataInitializer {
 
     private final MemberRepository memberRepository;
     private final BlogRepository blogRepository;
-
+/* 테스트에 방해되서 주석처리
     @Bean
     public CommandLineRunner initData() {
         return args -> {
@@ -58,5 +54,5 @@ public class DataInitializer {
             blogRepository.save(article2);
             blogRepository.save(article3);
         };
-    }
+    }*/
 }
