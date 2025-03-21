@@ -1,12 +1,24 @@
 package com.board.board.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.board.board.domain.Article;
 import com.board.board.dto.ArticleCreateRequest;
 import com.board.board.repository.BlogRepository;
 import com.board.config.auth.AuthUtil;
+import com.board.exception.custom.DifferentOwnerException;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
 import com.board.member.service.MemberService;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,13 +29,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BlogServiceTest {
@@ -147,6 +152,6 @@ class BlogServiceTest {
         when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
 
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> blogService.delete(1L));
+        assertThrows(DifferentOwnerException.class, () -> blogService.delete(1L));
     }
 }
