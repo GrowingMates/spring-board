@@ -1,19 +1,19 @@
 package com.board.exception;
 
+import static com.board.exception.ErrorCode.VALIDATION_ERROR;
+
 import com.board.exception.custom.DifferentOwnerException;
 import com.board.exception.custom.EmailNotFoundException;
 import com.board.exception.custom.MyEntityNotFoundException;
+import com.board.exception.custom.ServerException;
 import com.board.exception.custom.SignUpException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.List;
-
-import static com.board.exception.ErrorCode.VALIDATION_ERROR;
 
 @RestControllerAdvice
 @Slf4j
@@ -87,6 +87,18 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode());
         errorResponse.addDetail("기존 작성자 Email : ", e.getEmail());
 
+        return new ResponseEntity<>(errorResponse, e.getErrorCode().getHttpStatus());
+    }
+
+    @ExceptionHandler(ServerException.class)
+    public ResponseEntity<ErrorResponse> serverException(ServerException e) {
+
+        log.error("Error Code: {}, Message: {}",
+                e.getErrorCode().getCode(),
+                e.getErrorCode().getMessage(),
+                e);
+
+        ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode());
         return new ResponseEntity<>(errorResponse, e.getErrorCode().getHttpStatus());
     }
 
