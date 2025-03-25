@@ -1,6 +1,7 @@
 package com.board.config.auth;
 
-import static com.board.config.jwt.JwtAuthFilter.AUTHENTICATED_USER;
+
+import static com.board.config.auth.AuthConstants.AUTHENTICATED_USER;
 
 import com.board.exception.custom.ServerException;
 import org.springframework.stereotype.Component;

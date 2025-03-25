@@ -1,17 +1,19 @@
 package com.board.config.jwt;
 
+import static com.board.config.auth.AuthConstants.AUTHENTICATED_USER;
+
+import com.board.exception.custom.ServerException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 
 @RequiredArgsConstructor
@@ -21,7 +23,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    public static final String AUTHENTICATED_USER = "authenticatedUser";
 
     private static final String COOKIE_NAME = "token";
 
@@ -37,8 +38,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = getJwtInformation(request);
         if (token != null && jwtUtil.isTokenValid(token)) {
             String email = jwtUtil.extractEmail(token);
-            RequestContextHolder.getRequestAttributes()
-                    .setAttribute(AUTHENTICATED_USER, email, RequestAttributes.SCOPE_REQUEST);
+            RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+            if (requestAttributes == null) {
+                throw ServerException.getInstance();
+            }
+            requestAttributes.setAttribute(AUTHENTICATED_USER, email, RequestAttributes.SCOPE_REQUEST);
             filterChain.doFilter(request, response);
             return;
         }
