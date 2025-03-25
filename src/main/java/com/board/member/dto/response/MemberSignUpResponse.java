@@ -1,4 +1,4 @@
-package com.board.member.dto;
+package com.board.member.dto.response;
 
 import com.board.member.entity.MemberEntity;
 import lombok.Getter;

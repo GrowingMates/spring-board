@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.board.board.domain.Article;
-import com.board.board.dto.ArticleCreateRequest;
+import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.repository.BlogRepository;
 import com.board.config.auth.AuthUtil;
 import com.board.exception.custom.DifferentOwnerException;

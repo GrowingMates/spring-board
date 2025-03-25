@@ -12,12 +12,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.board.board.domain.Article;
-import com.board.board.dto.ArticleCreateRequest;
-import com.board.board.dto.ArticleUpdateRequest;
+import com.board.board.dto.request.ArticleCreateRequest;
+import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.repository.BlogRepository;
 import com.board.config.jwt.JwtUtil;
-import com.board.member.dto.LoginRequest;
-import com.board.member.dto.MemberSignUpRequest;
+import com.board.member.dto.request.LoginRequest;
+import com.board.member.dto.request.MemberSignUpRequest;
 import com.board.member.entity.MemberEntity;
 import com.board.member.repository.MemberRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;

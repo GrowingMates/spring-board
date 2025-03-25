@@ -1,4 +1,4 @@
-package com.board.board.dto;
+package com.board.board.dto.response;
 
 import com.board.board.domain.Article;
 import lombok.Getter;

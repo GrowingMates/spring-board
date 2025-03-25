@@ -1,4 +1,4 @@
-package com.board.member.dto;
+package com.board.member.dto.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

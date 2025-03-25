@@ -1,21 +1,20 @@
 package com.board.board.service;
 
 import com.board.board.domain.Article;
-import com.board.board.dto.ArticleCreateRequest;
-import com.board.board.dto.ArticleUpdateRequest;
+import com.board.board.dto.request.ArticleCreateRequest;
+import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.repository.BlogRepository;
 import com.board.config.auth.AuthUtil;
 import com.board.exception.custom.DifferentOwnerException;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
 import com.board.member.service.MemberService;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service

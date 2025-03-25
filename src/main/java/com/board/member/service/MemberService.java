@@ -1,9 +1,9 @@
 package com.board.member.service;
 
-import com.board.member.dto.LoginRequest;
-import com.board.member.dto.LoginResponse;
-import com.board.member.dto.MemberSignUpRequest;
-import com.board.member.dto.MemberSignUpResponse;
+import com.board.member.dto.request.LoginRequest;
+import com.board.member.dto.request.MemberSignUpRequest;
+import com.board.member.dto.response.LoginResponse;
+import com.board.member.dto.response.MemberSignUpResponse;
 import com.board.member.entity.MemberEntity;
 
 public interface MemberService {

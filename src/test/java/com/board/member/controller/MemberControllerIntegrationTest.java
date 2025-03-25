@@ -1,8 +1,14 @@
 package com.board.member.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.board.config.jwt.JwtUtil;
-import com.board.member.dto.LoginRequest;
-import com.board.member.dto.MemberSignUpRequest;
+import com.board.member.dto.request.LoginRequest;
+import com.board.member.dto.request.MemberSignUpRequest;
 import com.board.member.entity.MemberEntity;
 import com.board.member.repository.MemberRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,10 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
