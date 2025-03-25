@@ -10,12 +10,23 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 @Component
 public class AuthUtil {
+
+    public void saveAuthenticatedMember(String email) {
+        RequestAttributes requestAttributes = getRequestAttributes();
+        requestAttributes.setAttribute(AUTHENTICATED_USER, email, RequestAttributes.SCOPE_REQUEST);
+    }
+
     public String getMemberEmail() {
+        RequestAttributes requestAttributes = getRequestAttributes();
+        return (String) requestAttributes.getAttribute(AUTHENTICATED_USER, RequestAttributes.SCOPE_REQUEST);
+    }
+
+    private RequestAttributes getRequestAttributes() {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes == null) {
             throw ServerException.getInstance();
         }
-        return (String) requestAttributes.getAttribute(AUTHENTICATED_USER, RequestAttributes.SCOPE_REQUEST);
+        return requestAttributes;
     }
 
     public boolean isAuthenticated() {

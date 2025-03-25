@@ -1,5 +1,6 @@
 package com.board.config.filter;
 
+import com.board.config.auth.AuthUtil;
 import com.board.config.jwt.JwtAuthFilter;
 import com.board.config.jwt.JwtUtil;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -10,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
 public class FilterConfig {
 
     @Bean
-    public JwtAuthFilter jwtAuthFilter(JwtUtil jwtUtil) {
-        return new JwtAuthFilter(jwtUtil);
+    public JwtAuthFilter jwtAuthFilter(JwtUtil jwtUtil, AuthUtil authUtil) {
+        return new JwtAuthFilter(jwtUtil, authUtil);
     }
 
     @Bean

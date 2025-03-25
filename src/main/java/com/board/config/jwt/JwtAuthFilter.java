@@ -1,18 +1,12 @@
 package com.board.config.jwt;
 
-import static com.board.config.auth.AuthConstants.AUTHENTICATED_USER;
-
-import com.board.exception.custom.ServerException;
+import com.board.config.auth.AuthUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 
@@ -20,12 +14,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
-
-    private static final String COOKIE_NAME = "token";
-
+    private final AuthUtil authUtil;
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -35,38 +25,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = getJwtInformation(request);
+        String token = jwtUtil.extractToken(request);
         if (token != null && jwtUtil.isTokenValid(token)) {
             String email = jwtUtil.extractEmail(token);
-            RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-            if (requestAttributes == null) {
-                throw ServerException.getInstance();
-            }
-            requestAttributes.setAttribute(AUTHENTICATED_USER, email, RequestAttributes.SCOPE_REQUEST);
+            authUtil.saveAuthenticatedMember(email);
             filterChain.doFilter(request, response);
             return;
         }
 
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized!!!###");
-    }
-
-    private String getJwtInformation(HttpServletRequest request) {
-        if (request.getCookies() != null) { // 쿠키에서 jwt 확인
-            String cookieToken = Arrays.stream(request.getCookies())
-                    .filter(cookie -> COOKIE_NAME.equals(cookie.getName()))
-                    .map(Cookie::getValue)
-                    .findFirst()
-                    .orElse(null);
-
-            if (cookieToken != null) {
-                return cookieToken;
-            }
-        }
-
-        String header = request.getHeader(AUTHORIZATION_HEADER);
-        if (header != null && header.startsWith(BEARER_PREFIX)) {
-            return header.substring(BEARER_PREFIX.length());
-        }
-        return null;
     }
 }
