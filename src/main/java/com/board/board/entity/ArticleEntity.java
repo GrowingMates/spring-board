@@ -51,4 +51,8 @@ public class ArticleEntity {
         this.title = title;
         this.content = content;
     }
+
+    public boolean isSameOwner(MemberEntity member) {
+        return this.member.getId().equals(member.getId());
+    }
 }

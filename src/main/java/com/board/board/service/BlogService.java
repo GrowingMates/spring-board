@@ -9,7 +9,6 @@ import com.board.exception.custom.DifferentOwnerException;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
 import com.board.member.service.MemberService;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,7 +60,8 @@ public class BlogService {
         String email = authUtil.getMemberEmail();
         MemberEntity member = memberService.findByEmail(email);
         ArticleEntity article = findArticle(articleId);
-        if (!Objects.equals(member.getId(), article.getMember().getId())) {
+
+        if (!article.isSameOwner(member)) {
             throw DifferentOwnerException.from(article.getMember().getEmail());
         }
         return article;
