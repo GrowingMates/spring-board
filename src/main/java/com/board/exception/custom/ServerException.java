@@ -1,15 +1,17 @@
 package com.board.exception.custom;
 
-import com.board.exception.ErrorCode;
+import com.board.exception.CustomException;
+import com.board.exception.ErrorCodeType;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 @Getter
-public class ServerException extends RuntimeException {
-    private final ErrorCode errorCode;
+public class ServerException extends CustomException {
+
+    private ServerException() {
+        super(ErrorCodeType.SYSTEM_ERROR);
+    }
 
     public static ServerException getInstance() {
-        return new ServerException(ErrorCode.SYSTEM_ERROR);
+        return new ServerException();
     }
 }

@@ -1,19 +1,25 @@
 package com.board.exception.custom;
 
-import com.board.exception.ErrorCode;
+import com.board.exception.CustomException;
+import com.board.exception.ErrorCodeType;
+import java.util.Map;
 import lombok.Getter;
 
 @Getter
-public class SignUpException extends RuntimeException {
-    private final ErrorCode errorCode;
+public class SignUpException extends CustomException {
     private final String errorMessage;
 
-    private SignUpException(ErrorCode errorCode, String errorMessage) {
-        this.errorCode = errorCode;
+    private SignUpException(String errorMessage) {
+        super(ErrorCodeType.DUPLICATE);
         this.errorMessage = errorMessage;
     }
 
+    @Override
+    public Map<String, Object> getAdditionalDetails() {
+        return Map.of("errorMessage", errorMessage);
+    }
+
     public static SignUpException from(String errorMessage) {
-        return new SignUpException(ErrorCode.DUPLICATE, errorMessage);
+        return new SignUpException(errorMessage);
     }
 }

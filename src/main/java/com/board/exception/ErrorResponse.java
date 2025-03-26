@@ -1,11 +1,10 @@
 package com.board.exception;
 
-import lombok.Builder;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 class ErrorResponse {
@@ -23,12 +22,12 @@ class ErrorResponse {
         this.message = message;
     }
 
-    public static ErrorResponse of(ErrorCode errorCode) {
+    public static ErrorResponse of(ErrorType customExceptionType) {
         return builder()
-                .statusCode(errorCode.getHttpStatus().value())
+                .statusCode(customExceptionType.getHttpStatus().value())
                 .timestamp(LocalDateTime.now())
-                .code(errorCode.getCode())
-                .message(errorCode.getMessage())
+                .code(customExceptionType.getCode())
+                .message(customExceptionType.getMessage())
                 .build();
     }
 

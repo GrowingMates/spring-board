@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public enum ErrorCode {
+public enum ErrorCodeType implements ErrorType {
     ENTITY_NOT_FOUND("ENTITY_NOT_FOUND", "엔티티를 찾을 수 없습니다", HttpStatus.NOT_FOUND),
     VALIDATION_ERROR("VALIDATION_ERROR", "유효성 검증 실패", HttpStatus.BAD_REQUEST),
     AUTHENTICATION_ERROR("AUTHENTICATION_ERROR", "인증 실패", HttpStatus.UNAUTHORIZED),
@@ -16,7 +16,7 @@ public enum ErrorCode {
     private final String message;
     private final HttpStatus httpStatus;
 
-    ErrorCode(String code, String message, HttpStatus httpStatus) {
+    ErrorCodeType(String code, String message, HttpStatus httpStatus) {
         this.code = code;
         this.message = message;
         this.httpStatus = httpStatus;

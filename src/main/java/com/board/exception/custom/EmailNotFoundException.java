@@ -1,23 +1,25 @@
 package com.board.exception.custom;
 
-import com.board.exception.ErrorCode;
+import com.board.exception.CustomException;
+import com.board.exception.ErrorCodeType;
+import java.util.Map;
 import lombok.Getter;
 
 @Getter
-public class EmailNotFoundException extends RuntimeException {
-    private final ErrorCode errorCode;
+public class EmailNotFoundException extends CustomException {
     private final String email;
 
-    public EmailNotFoundException(ErrorCode errorCode, String email) {
-        this.errorCode = errorCode;
+    private EmailNotFoundException(String email) {
+        super(ErrorCodeType.ENTITY_NOT_FOUND);
         this.email = email;
     }
 
-    public static EmailNotFoundException from(String email) {
-        return new EmailNotFoundException(
-                ErrorCode.ENTITY_NOT_FOUND,
-                email
-        );
+    @Override
+    public Map<String, Object> getAdditionalDetails() {
+        return Map.of("email", email);
     }
 
+    public static EmailNotFoundException from(String email) {
+        return new EmailNotFoundException(email);
+    }
 }
