@@ -1,6 +1,6 @@
 package com.board.board.dto.response;
 
-import com.board.board.domain.Article;
+import com.board.board.entity.ArticleEntity;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,7 +13,7 @@ public class ArticleResponse {
     private final String content;
     private final Long memberId;
 
-    public ArticleResponse(Article article) {
+    public ArticleResponse(ArticleEntity article) {
         this.id = article.getId();
         this.title = article.getTitle();
         this.content = article.getContent();

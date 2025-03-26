@@ -9,8 +9,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.board.board.domain.Article;
 import com.board.board.dto.request.ArticleCreateRequest;
+import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
 import com.board.config.auth.AuthUtil;
 import com.board.exception.custom.DifferentOwnerException;
@@ -55,7 +55,7 @@ class BlogServiceTest {
         String nickName = "cc";
         MemberEntity member = new MemberEntity(email, password, nickName);
         ArticleCreateRequest request = new ArticleCreateRequest("title", "content");
-        Article article = Article.builder()
+        ArticleEntity article = ArticleEntity.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .member(member)
@@ -63,10 +63,10 @@ class BlogServiceTest {
 
         when(authUtil.getMemberEmail()).thenReturn(email);
         when(memberService.findByEmail(email)).thenReturn(member);
-        when(blogRepository.save(any(Article.class))).thenReturn(article);
+        when(blogRepository.save(any(ArticleEntity.class))).thenReturn(article);
 
         // When
-        Article savedArticle = blogService.save(request);
+        ArticleEntity savedArticle = blogService.save(request);
 
         // Then
         assertNotNull(savedArticle);
@@ -80,12 +80,12 @@ class BlogServiceTest {
     void findAllArticles_Success() {
         // given
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Article> mockPage = new PageImpl<>(Collections.emptyList());
+        Page<ArticleEntity> mockPage = new PageImpl<>(Collections.emptyList());
 
         when(blogRepository.findAll(pageable)).thenReturn(mockPage);
 
         // When
-        Page<Article> result = blogService.findAll(pageable);
+        Page<ArticleEntity> result = blogService.findAll(pageable);
 
         // Then
         assertNotNull(result);
@@ -96,11 +96,11 @@ class BlogServiceTest {
     @DisplayName("Serivce - findById - 성공")
     void findById_ArticleExists() {
         // Given
-        Article article = new Article(1L, "title", "content", new MemberEntity());
+        ArticleEntity article = new ArticleEntity(1L, "title", "content", new MemberEntity());
         when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
 
         // When
-        Article foundArticle = blogService.findById(1L);
+        ArticleEntity foundArticle = blogService.findById(1L);
 
         // Then
         assertNotNull(foundArticle);
@@ -124,7 +124,7 @@ class BlogServiceTest {
         // Given
         String email = "test@example.com";
         MemberEntity member = new MemberEntity(email, "testUser", "nickName");
-        Article article = new Article(1L, "title", "content", member);
+        ArticleEntity article = new ArticleEntity(1L, "title", "content", member);
 
         when(authUtil.getMemberEmail()).thenReturn(email);
         when(memberService.findByEmail(email)).thenReturn(member);
@@ -145,7 +145,7 @@ class BlogServiceTest {
         String email = "test@example.com";
         MemberEntity member = new MemberEntity(1L, email, "1234", "testUser");
         MemberEntity anotherMember = new MemberEntity(2L, "other@example.com", "1234", "otherUser");
-        Article article = new Article(1L, "title", "content", anotherMember);
+        ArticleEntity article = new ArticleEntity(1L, "title", "content", anotherMember);
 
         when(authUtil.getMemberEmail()).thenReturn(email);
         when(memberService.findByEmail(email)).thenReturn(member);

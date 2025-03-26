@@ -11,9 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.board.board.domain.Article;
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.dto.request.ArticleUpdateRequest;
+import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
 import com.board.config.jwt.JwtUtil;
 import com.board.member.dto.request.LoginRequest;
@@ -114,8 +114,8 @@ class BlogApiControllerIntegrationTest {
         MemberEntity member1 = createAndSaveMember("bb@aa.com", "nickname1");
         MemberEntity member2 = createAndSaveMember("cc@aa.com", "nickname2");
 
-        blogRepository.save(new Article("Title 1", "Content 1", member1));
-        blogRepository.save(new Article("Title 2", "Content 2", member2));
+        blogRepository.save(new ArticleEntity("Title 1", "Content 1", member1));
+        blogRepository.save(new ArticleEntity("Title 2", "Content 2", member2));
 
         mockMvc.perform(get("/articles").param("page", "0").param("size", "10"))
                 .andExpect(status().isOk())
@@ -128,7 +128,7 @@ class BlogApiControllerIntegrationTest {
     @DisplayName("개별 조회 테스트")
     void findArticleTest() throws Exception {
         MemberEntity member = createAndSaveMember("bb@aa.com", "nickname");
-        Article article = blogRepository.save(new Article("Title 1", "Content 1", member));
+        ArticleEntity article = blogRepository.save(new ArticleEntity("Title 1", "Content 1", member));
 
         mockMvc.perform(get("/articles/" + article.getId()))
                 .andExpect(status().isOk())
@@ -139,7 +139,7 @@ class BlogApiControllerIntegrationTest {
     @Test
     @DisplayName("로그인 없이 글 삭제 시 401 에러 발생")
     void notLoginDeleteArticleTest() throws Exception {
-        Article article = createAndSaveArticle("Title 1", "Content 1");
+        ArticleEntity article = createAndSaveArticle("Title 1", "Content 1");
 
         mockMvc.perform(delete("/articles/" + article.getId()))
                 .andExpect(status().isUnauthorized());
@@ -180,8 +180,8 @@ class BlogApiControllerIntegrationTest {
         return memberRepository.save(new MemberEntity(email, MEMBER_PASSWORD, nickname));
     }
 
-    private Article createAndSaveArticle(String title, String content) {
-        return blogRepository.save(new Article(title, content, createAndSaveMember("bb@aa.com", "nickname")));
+    private ArticleEntity createAndSaveArticle(String title, String content) {
+        return blogRepository.save(new ArticleEntity(title, content, createAndSaveMember("bb@aa.com", "nickname")));
     }
 
     private Long createArticleAndGetId(String title, String content) throws Exception {

@@ -1,8 +1,8 @@
 package com.board.board.service;
 
-import com.board.board.domain.Article;
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.dto.request.ArticleUpdateRequest;
+import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
 import com.board.config.auth.AuthUtil;
 import com.board.exception.custom.DifferentOwnerException;
@@ -25,11 +25,11 @@ public class BlogService {
     private final MemberService memberService;
     private final AuthUtil authUtil;
 
-    public Article save(ArticleCreateRequest request) {
+    public ArticleEntity save(ArticleCreateRequest request) {
         String email = authUtil.getMemberEmail();
         MemberEntity member = memberService.findByEmail(email);
 
-        return blogRepository.save(Article.builder()
+        return blogRepository.save(ArticleEntity.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .member(member)
@@ -37,12 +37,12 @@ public class BlogService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Article> findAll(Pageable pageable) {
+    public Page<ArticleEntity> findAll(Pageable pageable) {
         return blogRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
-    public Article findById(long id) {
+    public ArticleEntity findById(long id) {
         return findArticle(id);
     }
 
@@ -51,23 +51,23 @@ public class BlogService {
         blogRepository.deleteById(id);
     }
 
-    public Article update(long id, ArticleUpdateRequest request) {
-        Article article = compareAuthors(id);
+    public ArticleEntity update(long id, ArticleUpdateRequest request) {
+        ArticleEntity article = compareAuthors(id);
         article.update(request.getTitle(), request.getContent());
         return article;
     }
 
-    private Article compareAuthors(long articleId) {
+    private ArticleEntity compareAuthors(long articleId) {
         String email = authUtil.getMemberEmail();
         MemberEntity member = memberService.findByEmail(email);
-        Article article = findArticle(articleId);
+        ArticleEntity article = findArticle(articleId);
         if (!Objects.equals(member.getId(), article.getMember().getId())) {
             throw DifferentOwnerException.from(article.getMember().getEmail());
         }
         return article;
     }
 
-    private Article findArticle(long id) {
+    private ArticleEntity findArticle(long id) {
         return blogRepository.findById(id)
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }

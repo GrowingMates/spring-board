@@ -1,9 +1,9 @@
 package com.board.board.controller;
 
-import com.board.board.domain.Article;
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.dto.response.ArticleResponse;
+import com.board.board.entity.ArticleEntity;
 import com.board.board.service.BlogService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -31,7 +31,7 @@ public class BlogApiController {
 
     @PostMapping("")
     public ResponseEntity<ArticleResponse> addArticle(@Valid @RequestBody ArticleCreateRequest request) {
-        Article savedArticle = blogService.save(request);
+        ArticleEntity savedArticle = blogService.save(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ArticleResponse(savedArticle));
@@ -40,7 +40,6 @@ public class BlogApiController {
     @GetMapping("")
     public ResponseEntity<List<ArticleResponse>> findAllArticles(@RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size) {
-
         Pageable pageable = PageRequest.of(page, size);
 
         List<ArticleResponse> articles = blogService.findAll(pageable)
@@ -54,7 +53,7 @@ public class BlogApiController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ArticleResponse> findArticle(@PathVariable long id) {
-        Article article = blogService.findById(id);
+        ArticleEntity article = blogService.findById(id);
 
         return ResponseEntity.ok()
                 .body(new ArticleResponse(article));
@@ -71,7 +70,7 @@ public class BlogApiController {
     @PutMapping("/{id}")
     public ResponseEntity<ArticleResponse> updateArticle(@PathVariable long id,
                                                          @Valid @RequestBody ArticleUpdateRequest request) {
-        Article updateArticle = blogService.update(id, request);
+        ArticleEntity updateArticle = blogService.update(id, request);
 
         return ResponseEntity.ok()
                 .body(new ArticleResponse(updateArticle));

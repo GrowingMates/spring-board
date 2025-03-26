@@ -9,10 +9,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.board.board.domain.Article;
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.dto.response.ArticleResponse;
+import com.board.board.entity.ArticleEntity;
 import com.board.board.service.BlogService;
 import com.board.member.entity.MemberEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +45,7 @@ class BlogApiControllerTest {
         ArticleResponse response = new ArticleResponse(1L, "Title", "Content", 2L);
         MemberEntity member = new MemberEntity(); // Mock member entity
 
-        when(blogService.save(any(ArticleCreateRequest.class))).thenReturn(Article.builder()
+        when(blogService.save(any(ArticleCreateRequest.class))).thenReturn(ArticleEntity.builder()
                 .title(response.getTitle())
                 .content(response.getContent())
                 .member(member)
@@ -68,11 +68,12 @@ class BlogApiControllerTest {
                 new ArticleResponse(2L, "Title2", "Content2", 1L)
         );
         MemberEntity member = new MemberEntity();
-        when(blogService.findAll(any())).thenReturn(new PageImpl<>(responses.stream().map(response -> Article.builder()
-                .title(response.getTitle())
-                .content(response.getContent())
-                .member(member)
-                .build()).toList()));
+        when(blogService.findAll(any())).thenReturn(
+                new PageImpl<>(responses.stream().map(response -> ArticleEntity.builder()
+                        .title(response.getTitle())
+                        .content(response.getContent())
+                        .member(member)
+                        .build()).toList()));
 
         // When & Then
         mockMvc.perform(get("/articles"))
@@ -88,7 +89,7 @@ class BlogApiControllerTest {
         ArticleResponse response = new ArticleResponse(1L, "Title", "Content", 1L);
         MemberEntity member = new MemberEntity();
 
-        when(blogService.findById(1L)).thenReturn(Article.builder()
+        when(blogService.findById(1L)).thenReturn(ArticleEntity.builder()
                 .title(response.getTitle())
                 .content(response.getContent())
                 .member(member)
@@ -116,7 +117,7 @@ class BlogApiControllerTest {
         ArticleResponse response = new ArticleResponse(1L, "Updated Title", "Updated Content", 1L);
 
         MemberEntity member = new MemberEntity();
-        when(blogService.update(any(Long.class), any(ArticleUpdateRequest.class))).thenReturn(Article.builder()
+        when(blogService.update(any(Long.class), any(ArticleUpdateRequest.class))).thenReturn(ArticleEntity.builder()
                 .title(response.getTitle())
                 .content(response.getContent())
                 .member(member)
