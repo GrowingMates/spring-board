@@ -15,17 +15,10 @@ public class ArticleCreateRequest {
     private String title;
     @NotBlank
     private String content;
-    private Long memberId;
 
+    @Builder
     public ArticleCreateRequest(String title, String content) {
         this.title = title;
         this.content = content;
-    }
-
-    @Builder
-    public ArticleCreateRequest(String title, String content, Long memberId) {
-        this.title = title;
-        this.content = content;
-        this.memberId = memberId;
     }
 }
