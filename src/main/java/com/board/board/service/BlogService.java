@@ -5,7 +5,6 @@ import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
 import com.board.config.auth.AuthUtil;
-import com.board.exception.custom.DifferentOwnerException;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
 import com.board.member.service.MemberService;
@@ -60,10 +59,7 @@ public class BlogService {
         String email = authUtil.getMemberEmail();
         MemberEntity member = memberService.findByEmail(email);
         ArticleEntity article = findArticle(articleId);
-
-        if (!article.isSameOwner(member)) {
-            throw DifferentOwnerException.from(article.getMember().getEmail());
-        }
+        article.validateOwner(member);
         return article;
     }
 

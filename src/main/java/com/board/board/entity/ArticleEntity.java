@@ -1,5 +1,6 @@
 package com.board.board.entity;
 
+import com.board.exception.custom.DifferentOwnerException;
 import com.board.member.entity.MemberEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -52,7 +53,9 @@ public class ArticleEntity {
         this.content = content;
     }
 
-    public boolean isSameOwner(MemberEntity member) {
-        return this.member.getId().equals(member.getId());
+    public void validateOwner(MemberEntity member) {
+        if (!this.member.getId().equals(member.getId())) {
+            throw DifferentOwnerException.from(this.member.getEmail());
+        }
     }
 }
