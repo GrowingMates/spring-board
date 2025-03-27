@@ -123,7 +123,7 @@ class BlogServiceTest {
     void deleteArticle_Success() {
         // Given
         String email = "test@example.com";
-        MemberEntity member = new MemberEntity(email, "testUser", "nickName");
+        MemberEntity member = new MemberEntity(1L, email, "testUser", "nickName");
         ArticleEntity article = new ArticleEntity(1L, "title", "content", member);
 
         when(authUtil.getMemberEmail()).thenReturn(email);
