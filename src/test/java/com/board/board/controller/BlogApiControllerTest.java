@@ -1,14 +1,5 @@
 package com.board.board.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.dto.response.ArticleResponse;
@@ -16,7 +7,6 @@ import com.board.board.entity.ArticleEntity;
 import com.board.board.service.BlogService;
 import com.board.member.entity.MemberEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,6 +14,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BlogApiController.class)
 class BlogApiControllerTest {
@@ -43,7 +41,11 @@ class BlogApiControllerTest {
         // Given
         ArticleCreateRequest request = new ArticleCreateRequest("Title", "Content");
         ArticleResponse response = new ArticleResponse(1L, "Title", "Content", 2L);
-        MemberEntity member = new MemberEntity(); // Mock member entity
+        MemberEntity member = MemberEntity.builder()
+                .email("abc@example.com")
+                .password("abc")
+                .nickName("abc")
+                .build();
 
         when(blogService.save(any(ArticleCreateRequest.class))).thenReturn(ArticleEntity.builder()
                 .title(response.getTitle())
@@ -67,7 +69,11 @@ class BlogApiControllerTest {
                 new ArticleResponse(1L, "Title1", "Content1", 1L),
                 new ArticleResponse(2L, "Title2", "Content2", 1L)
         );
-        MemberEntity member = new MemberEntity();
+        MemberEntity member = MemberEntity.builder()
+                .email("abc@example.com")
+                .password("abc")
+                .nickName("abc")
+                .build();
         when(blogService.findAll(any())).thenReturn(
                 new PageImpl<>(responses.stream().map(response -> ArticleEntity.builder()
                         .title(response.getTitle())
@@ -87,7 +93,11 @@ class BlogApiControllerTest {
     void findArticle_Success() throws Exception {
         // Given
         ArticleResponse response = new ArticleResponse(1L, "Title", "Content", 1L);
-        MemberEntity member = new MemberEntity();
+        MemberEntity member = MemberEntity.builder()
+                .email("abc@example.com")
+                .password("abc")
+                .nickName("abc")
+                .build();
 
         when(blogService.findById(1L)).thenReturn(ArticleEntity.builder()
                 .title(response.getTitle())
@@ -116,7 +126,11 @@ class BlogApiControllerTest {
         ArticleUpdateRequest request = new ArticleUpdateRequest("Updated Title", "Updated Content");
         ArticleResponse response = new ArticleResponse(1L, "Updated Title", "Updated Content", 1L);
 
-        MemberEntity member = new MemberEntity();
+        MemberEntity member = MemberEntity.builder()
+                .email("abc@example.com")
+                .password("abc")
+                .nickName("abc")
+                .build();
         when(blogService.update(any(Long.class), any(ArticleUpdateRequest.class))).thenReturn(ArticleEntity.builder()
                 .title(response.getTitle())
                 .content(response.getContent())
