@@ -98,16 +98,18 @@ class BlogServiceTest {
     @DisplayName("Serivce - findById - 성공")
     void findById_ArticleExists() {
         // Given
-        ArticleEntity article = new ArticleEntity(1L, "title", "content", new MemberEntity());
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
+        MemberEntity member = new MemberEntity("test@example.com", "password", "testUser");
+        ArticleEntity article = new ArticleEntity("title", "content", member);
+        when(blogRepository.findById(anyLong())).thenReturn(Optional.of(article));
 
         // When
         ArticleEntity foundArticle = blogService.findById(1L);
 
         // Then
         assertNotNull(foundArticle);
-        assertEquals(1L, foundArticle.getId());
         assertEquals("title", foundArticle.getTitle());
+        assertEquals("content", foundArticle.getContent());
+        assertEquals("test@example.com", foundArticle.getMember().getEmail());
     }
 
     @Test
