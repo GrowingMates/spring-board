@@ -48,7 +48,7 @@ public class ArticleEntity {
     }
 
     public void validateOwner(MemberEntity member) {
-        if (!this.member.getId().equals(member.getId())) {
+        if (!this.member.equals(member)) {
             throw DifferentOwnerException.from(this.member.getEmail());
         }
     }

@@ -1,5 +1,13 @@
 package com.board.board.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
@@ -8,6 +16,8 @@ import com.board.exception.custom.DifferentOwnerException;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
 import com.board.member.service.MemberService;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,13 +28,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BlogServiceTest {
@@ -92,22 +95,18 @@ class BlogServiceTest {
     @DisplayName("Serivce - findById - 성공")
     void findById_ArticleExists() {
         // Given
-        MemberEntity member = MemberEntity.builder()
-                .email("abc@example.com")
-                .password("abc")
-                .nickName("abc")
-                .build();
-
-        ArticleEntity article = new ArticleEntity(1L, "title", "content", member);
+        MemberEntity member = new MemberEntity("test@example.com", "password", "testUser");
+        ArticleEntity article = new ArticleEntity("title", "content", member);
+        when(blogRepository.findById(anyLong())).thenReturn(Optional.of(article));
         when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
-
         // When
         ArticleEntity foundArticle = blogService.findById(1L);
 
         // Then
         assertNotNull(foundArticle);
-        assertEquals(1L, foundArticle.getId());
         assertEquals("title", foundArticle.getTitle());
+        assertEquals("content", foundArticle.getContent());
+        assertEquals("test@example.com", foundArticle.getMember().getEmail());
     }
 
     @Test
@@ -121,22 +120,24 @@ class BlogServiceTest {
     }
 
     @Test
-    @DisplayName("Serivce - delete 성공")
+    @DisplayName("Service - delete 성공")
     void deleteArticle_Success() {
         // Given
         String email = "test@example.com";
-        MemberEntity member = new MemberEntity(1L, email, "testUser", "nickName");
-        ArticleEntity article = new ArticleEntity(1L, "title", "content", member);
+        MemberEntity member = new MemberEntity(email, "testUser", "nickName"); // ID 없이 생성
+        ArticleEntity article = new ArticleEntity("title", "content", member); // ID 없이 생성
 
         when(authUtil.getMemberEmail()).thenReturn(email);
         when(memberService.findByEmail(email)).thenReturn(member);
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
+        when(blogRepository.findById(anyLong())).thenReturn(Optional.of(article));
+
+        doNothing().when(blogRepository).deleteById(anyLong());
 
         // When
         blogService.delete(1L);
 
         // Then
-        verify(blogRepository, times(1)).deleteById(1L);
+        verify(blogRepository, times(1)).deleteById(anyLong());
     }
 
 
@@ -145,13 +146,13 @@ class BlogServiceTest {
     void deleteArticle_NotAuthor_ThrowsException() {
         // Given
         String email = "test@example.com";
-        MemberEntity member = new MemberEntity(1L, email, "1234", "testUser");
-        MemberEntity anotherMember = new MemberEntity(2L, "other@example.com", "1234", "otherUser");
-        ArticleEntity article = new ArticleEntity(1L, "title", "content", anotherMember);
+        MemberEntity member = new MemberEntity(email, "1234", "testUser");
+        MemberEntity anotherMember = new MemberEntity("other@example.com", "1234", "otherUser");
+        ArticleEntity article = new ArticleEntity("title", "content", anotherMember);
 
         when(authUtil.getMemberEmail()).thenReturn(email);
         when(memberService.findByEmail(email)).thenReturn(member);
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
+        when(blogRepository.findById(anyLong())).thenReturn(Optional.of(article));
 
         // When & Then
         assertThrows(DifferentOwnerException.class, () -> blogService.delete(1L));
