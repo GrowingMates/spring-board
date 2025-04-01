@@ -5,15 +5,21 @@ import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.dto.response.ArticleResponse;
 import com.board.board.entity.ArticleEntity;
 import com.board.board.service.BlogService;
+import com.board.config.auth.AuthUtil;
+import com.board.config.auth.AuthenticatedMemberArgumentResolver;
 import com.board.member.entity.MemberEntity;
+import com.board.member.service.MemberService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
@@ -30,10 +36,27 @@ class BlogApiControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
+    private AuthUtil authUtil;
+
+    @MockitoBean
+    private MemberService memberService;
+
+    @MockitoBean
     private BlogService blogService;
+
+    @Mock
+    private AuthenticatedMemberArgumentResolver authenticatedMemberArgumentResolver; // ✅ ArgumentResolver 추가
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setup() {
+        // ✅ MockMvc에 ArgumentResolver 등록
+        mockMvc = MockMvcBuilders.standaloneSetup(new BlogApiController(blogService))
+                .setCustomArgumentResolvers(authenticatedMemberArgumentResolver)
+                .build();
+    }
 
 
     @Test
@@ -47,7 +70,7 @@ class BlogApiControllerTest {
                 .nickName("abc")
                 .build();
 
-        when(blogService.save(any(ArticleCreateRequest.class))).thenReturn(ArticleEntity.builder()
+        when(blogService.save(any(ArticleCreateRequest.class), any(MemberEntity.class))).thenReturn(ArticleEntity.builder()
                 .title(response.getTitle())
                 .content(response.getContent())
                 .member(member)
@@ -131,11 +154,12 @@ class BlogApiControllerTest {
                 .password("abc")
                 .nickName("abc")
                 .build();
-        when(blogService.update(any(Long.class), any(ArticleUpdateRequest.class))).thenReturn(ArticleEntity.builder()
-                .title(response.getTitle())
-                .content(response.getContent())
-                .member(member)
-                .build());
+        when(blogService.update(any(Long.class), any(MemberEntity.class), any(ArticleUpdateRequest.class)))
+                .thenReturn(ArticleEntity.builder()
+                        .title(response.getTitle())
+                        .content(response.getContent())
+                        .member(member)
+                        .build());
 
         // When & Then
         mockMvc.perform(put("/articles/1")

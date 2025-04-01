@@ -1,13 +1,5 @@
 package com.board.board.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
-
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
@@ -16,8 +8,6 @@ import com.board.exception.custom.DifferentOwnerException;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
 import com.board.member.service.MemberService;
-import java.util.Collections;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +18,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BlogServiceTest {
@@ -60,12 +58,10 @@ class BlogServiceTest {
                 .member(member)
                 .build();
 
-        when(authUtil.getMemberEmail()).thenReturn(email);
-        when(memberService.findByEmail(email)).thenReturn(member);
         when(blogRepository.save(any(ArticleEntity.class))).thenReturn(article);
 
         // When
-        ArticleEntity savedArticle = blogService.save(request);
+        ArticleEntity savedArticle = blogService.save(request, member);
 
         // Then
         assertNotNull(savedArticle);
@@ -127,14 +123,12 @@ class BlogServiceTest {
         MemberEntity member = new MemberEntity(email, "testUser", "nickName"); // ID 없이 생성
         ArticleEntity article = new ArticleEntity("title", "content", member); // ID 없이 생성
 
-        when(authUtil.getMemberEmail()).thenReturn(email);
-        when(memberService.findByEmail(email)).thenReturn(member);
         when(blogRepository.findById(anyLong())).thenReturn(Optional.of(article));
 
         doNothing().when(blogRepository).deleteById(anyLong());
 
         // When
-        blogService.delete(1L);
+        blogService.delete(1L, member);
 
         // Then
         verify(blogRepository, times(1)).deleteById(anyLong());
@@ -150,11 +144,9 @@ class BlogServiceTest {
         MemberEntity anotherMember = new MemberEntity("other@example.com", "1234", "otherUser");
         ArticleEntity article = new ArticleEntity("title", "content", anotherMember);
 
-        when(authUtil.getMemberEmail()).thenReturn(email);
-        when(memberService.findByEmail(email)).thenReturn(member);
         when(blogRepository.findById(anyLong())).thenReturn(Optional.of(article));
 
         // When & Then
-        assertThrows(DifferentOwnerException.class, () -> blogService.delete(1L));
+        assertThrows(DifferentOwnerException.class, () -> blogService.delete(1L, member));
     }
 }

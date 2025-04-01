@@ -23,10 +23,7 @@ public class BlogService {
     private final MemberService memberService;
     private final AuthUtil authUtil;
 
-    public ArticleEntity save(ArticleCreateRequest request) {
-        String email = authUtil.getMemberEmail();
-        MemberEntity member = memberService.findByEmail(email);
-
+    public ArticleEntity save(ArticleCreateRequest request, MemberEntity member) {
         return blogRepository.save(ArticleEntity.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -44,20 +41,18 @@ public class BlogService {
         return findArticle(id);
     }
 
-    public void delete(long id) {
-        compareAuthors(id);
+    public void delete(long id, MemberEntity member) {
+        compareAuthors(id, member);
         blogRepository.deleteById(id);
     }
 
-    public ArticleEntity update(long id, ArticleUpdateRequest request) {
-        ArticleEntity article = compareAuthors(id);
+    public ArticleEntity update(long id, MemberEntity member, ArticleUpdateRequest request) {
+        ArticleEntity article = compareAuthors(id, member);
         article.update(request.getTitle(), request.getContent());
         return article;
     }
 
-    private ArticleEntity compareAuthors(long articleId) {
-        String email = authUtil.getMemberEmail();
-        MemberEntity member = memberService.findByEmail(email);
+    private ArticleEntity compareAuthors(long articleId, MemberEntity member) {
         ArticleEntity article = findArticle(articleId);
         article.validateOwner(member);
         return article;

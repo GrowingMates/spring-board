@@ -5,22 +5,17 @@ import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.dto.response.ArticleResponse;
 import com.board.board.entity.ArticleEntity;
 import com.board.board.service.BlogService;
+import com.board.config.auth.annotation.AuthenticatedMember;
+import com.board.member.entity.MemberEntity;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -30,8 +25,9 @@ public class BlogApiController {
     private final BlogService blogService;
 
     @PostMapping("")
-    public ResponseEntity<ArticleResponse> addArticle(@Valid @RequestBody ArticleCreateRequest request) {
-        ArticleEntity savedArticle = blogService.save(request);
+    public ResponseEntity<ArticleResponse> addArticle(@Valid @RequestBody ArticleCreateRequest request,
+                                                      @AuthenticatedMember MemberEntity member) {
+        ArticleEntity savedArticle = blogService.save(request, member);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ArticleResponse(savedArticle));
@@ -60,8 +56,9 @@ public class BlogApiController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteArticle(@PathVariable long id) {
-        blogService.delete(id);
+    public ResponseEntity<Void> deleteArticle(@PathVariable long id,
+                                              @AuthenticatedMember MemberEntity member) {
+        blogService.delete(id, member);
 
         return ResponseEntity.noContent()
                 .build();
@@ -69,8 +66,9 @@ public class BlogApiController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ArticleResponse> updateArticle(@PathVariable long id,
+                                                         @AuthenticatedMember MemberEntity member,
                                                          @Valid @RequestBody ArticleUpdateRequest request) {
-        ArticleEntity updateArticle = blogService.update(id, request);
+        ArticleEntity updateArticle = blogService.update(id, member, request);
 
         return ResponseEntity.ok()
                 .body(new ArticleResponse(updateArticle));
