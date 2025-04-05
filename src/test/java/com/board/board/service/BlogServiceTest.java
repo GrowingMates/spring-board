@@ -3,11 +3,9 @@ package com.board.board.service;
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
-import com.board.config.auth.AuthUtil;
 import com.board.exception.custom.DifferentOwnerException;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
-import com.board.member.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,12 +33,6 @@ class BlogServiceTest {
 
     @Mock
     private BlogRepository blogRepository;
-
-    @Mock
-    private MemberService memberService;
-
-    @Mock
-    private AuthUtil authUtil;
 
     @Test
     @DisplayName("Serivce - saveArticle - 성공")
