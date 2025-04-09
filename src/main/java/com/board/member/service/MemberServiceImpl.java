@@ -70,14 +70,14 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public MemberEntity findByEmail(String email) {
-        return memberRepository.findByEmail(email).orElseThrow(() ->
-                EmailNotFoundException.from(email));
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> EmailNotFoundException.from(email));
     }
 
     @Override
     public MemberEntity findById(Long id) {
-        return memberRepository.findById(id).orElseThrow(() ->
-                MyEntityNotFoundException.from(id));
+        return memberRepository.findById(id)
+                .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }
 
 
