@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> signUpValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
         ErrorResponse errorResponse = ErrorResponse.of(VALIDATION_ERROR);
 

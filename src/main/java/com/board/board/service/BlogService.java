@@ -4,10 +4,8 @@ import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
-import com.board.config.auth.AuthUtil;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
-import com.board.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class BlogService {
 
     private final BlogRepository blogRepository;
-    private final MemberService memberService;
-    private final AuthUtil authUtil;
 
+    @Transactional
     public ArticleEntity save(ArticleCreateRequest request, MemberEntity member) {
         return blogRepository.save(ArticleEntity.builder()
                 .title(request.getTitle())
@@ -31,27 +28,27 @@ public class BlogService {
                 .build());
     }
 
-    @Transactional(readOnly = true)
     public Page<ArticleEntity> findAll(Pageable pageable) {
         return blogRepository.findAll(pageable);
     }
 
-    @Transactional(readOnly = true)
     public ArticleEntity findById(long id) {
         return findArticle(id);
     }
 
+    @Transactional
     public void delete(long id, MemberEntity member) {
         compareAuthors(id, member);
         blogRepository.deleteById(id);
     }
 
+    @Transactional
     public ArticleEntity update(long id, MemberEntity member, ArticleUpdateRequest request) {
         ArticleEntity article = compareAuthors(id, member);
         article.update(request.getTitle(), request.getContent());
         return article;
     }
-
+    
     private ArticleEntity compareAuthors(long articleId, MemberEntity member) {
         ArticleEntity article = findArticle(articleId);
         article.validateOwner(member);
