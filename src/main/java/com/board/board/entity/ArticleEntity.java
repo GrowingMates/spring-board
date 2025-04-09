@@ -28,13 +28,14 @@ public class ArticleEntity {
     @JoinColumn(name = "member_id")
     private MemberEntity member;
 
-    @Builder
+
     public ArticleEntity(String title, String content, MemberEntity member) {
         this.title = title;
         this.content = content;
         this.member = member;
     }
 
+    @Builder
     public ArticleEntity(Long id, String title, String content, MemberEntity member) {
         this.id = id;
         this.title = title;
