@@ -31,6 +31,6 @@ public class AuthenticatedMemberArgumentResolver implements HandlerMethodArgumen
                                   NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) throws Exception {
         String email = authUtil.getMemberEmail();
-        return memberService.findByEmail(email); // MemberEntity를 반환하여 파라미터에 주입
+        return memberService.findByEmail(email).getId(); // MemberEntity를 반환하여 파라미터에 주입
     }
 }

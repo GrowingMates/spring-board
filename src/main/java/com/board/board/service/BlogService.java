@@ -6,6 +6,7 @@ import com.board.board.entity.ArticleEntity;
 import com.board.board.repository.BlogRepository;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.member.entity.MemberEntity;
+import com.board.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,13 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class BlogService {
 
     private final BlogRepository blogRepository;
+    private final MemberService memberService;
 
     @Transactional
-    public ArticleEntity save(ArticleCreateRequest request, MemberEntity member) {
+    public ArticleEntity save(ArticleCreateRequest request, Long memberId) {
         return blogRepository.save(ArticleEntity.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .member(member)
+                .member(memberService.findById(memberId))
                 .build());
     }
 
@@ -37,18 +39,18 @@ public class BlogService {
     }
 
     @Transactional
-    public void delete(long id, MemberEntity member) {
-        compareAuthors(id, member);
+    public void delete(long id, Long memberId) {
+        compareAuthors(id, memberService.findById(memberId));
         blogRepository.deleteById(id);
     }
 
     @Transactional
-    public ArticleEntity update(long id, MemberEntity member, ArticleUpdateRequest request) {
-        ArticleEntity article = compareAuthors(id, member);
+    public ArticleEntity update(long id, Long memberId, ArticleUpdateRequest request) {
+        ArticleEntity article = compareAuthors(id, memberService.findById(memberId));
         article.update(request.getTitle(), request.getContent());
         return article;
     }
-    
+
     private ArticleEntity compareAuthors(long articleId, MemberEntity member) {
         ArticleEntity article = findArticle(articleId);
         article.validateOwner(member);

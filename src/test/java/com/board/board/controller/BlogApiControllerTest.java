@@ -1,5 +1,14 @@
 package com.board.board.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.board.board.dto.request.ArticleCreateRequest;
 import com.board.board.dto.request.ArticleUpdateRequest;
 import com.board.board.dto.response.ArticleResponse;
@@ -7,7 +16,9 @@ import com.board.board.entity.ArticleEntity;
 import com.board.board.service.BlogService;
 import com.board.config.auth.AuthenticatedMemberArgumentResolver;
 import com.board.member.entity.MemberEntity;
+import com.board.member.service.MemberService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,14 +26,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BlogApiController.class)
 class BlogApiControllerTest {
@@ -34,7 +37,10 @@ class BlogApiControllerTest {
     private BlogService blogService;
 
     @MockitoBean
-    private AuthenticatedMemberArgumentResolver authenticatedMemberArgumentResolver; // ✅ ArgumentResolver 추가
+    private MemberService memberService;
+
+    @MockitoBean
+    private AuthenticatedMemberArgumentResolver authenticatedMemberArgumentResolver;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -50,7 +56,8 @@ class BlogApiControllerTest {
                 .nickName("abc")
                 .build();
 
-        when(blogService.save(any(ArticleCreateRequest.class), any(MemberEntity.class))).thenReturn(ArticleEntity.builder()
+        when(memberService.findById(any())).thenReturn(member);
+        when(blogService.save(any(ArticleCreateRequest.class), any(Long.class))).thenReturn(ArticleEntity.builder()
                 .title(response.getTitle())
                 .content(response.getContent())
                 .member(member)
@@ -134,7 +141,7 @@ class BlogApiControllerTest {
                 .password("abc")
                 .nickName("abc")
                 .build();
-        when(blogService.update(any(Long.class), any(MemberEntity.class), any(ArticleUpdateRequest.class)))
+        when(blogService.update(any(Long.class), any(Long.class), any(ArticleUpdateRequest.class)))
                 .thenReturn(ArticleEntity.builder()
                         .title(response.getTitle())
                         .content(response.getContent())
