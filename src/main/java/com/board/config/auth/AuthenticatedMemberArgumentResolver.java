@@ -1,7 +1,6 @@
 package com.board.config.auth;
 
 import com.board.config.auth.annotation.AuthenticatedMember;
-import com.board.member.entity.MemberEntity;
 import com.board.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
@@ -22,7 +21,7 @@ public class AuthenticatedMemberArgumentResolver implements HandlerMethodArgumen
     public boolean supportsParameter(MethodParameter parameter) {
         // @AuthenticatedMember 가 붙어있고 MemberEntity 타입이면 처리
         return parameter.hasParameterAnnotation(AuthenticatedMember.class)
-                && parameter.getParameterType().equals(MemberEntity.class);
+                && parameter.getParameterType().equals(Long.class);
     }
 
     @Override
