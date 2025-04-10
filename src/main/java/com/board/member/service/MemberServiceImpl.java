@@ -53,18 +53,13 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-
         MemberEntity memberEntity = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException(ErrorMessage.NOT_CORRECT_LOGIN));
 
         Member member = new Member(memberEntity);
-
-        if (!member.checkPassword(request.getPassword())) {
-            throw new IllegalArgumentException(ErrorMessage.NOT_CORRECT_LOGIN);
-        }
+        member.checkPassword(request.getPassword());
 
         String token = jwtUtil.generateToken(member.getEmail(), ACCESS_TOKEN_EXPIRATION);
-
         return new LoginResponse(token, ACCESS_TOKEN_EXPIRATION);
     }
 
