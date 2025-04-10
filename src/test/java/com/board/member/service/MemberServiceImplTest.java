@@ -1,6 +1,13 @@
 package com.board.member.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.board.config.jwt.JwtUtil;
+import com.board.config.jwt.TokenWithExpiration;
 import com.board.exception.custom.SignUpException;
 import com.board.member.dto.request.LoginRequest;
 import com.board.member.dto.request.MemberSignUpRequest;
@@ -8,6 +15,7 @@ import com.board.member.dto.response.LoginResponse;
 import com.board.member.dto.response.MemberSignUpResponse;
 import com.board.member.entity.MemberEntity;
 import com.board.member.repository.MemberRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,12 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
@@ -87,7 +89,8 @@ class MemberServiceImplTest {
             // Given
             LoginRequest request = new LoginRequest("test@example.com", "1234");
             when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
-            when(jwtUtil.generateToken(any(String.class), any(Long.class))).thenReturn("token");
+            when(jwtUtil.generateTokenWithExpiration(any(String.class)))
+                    .thenReturn(new TokenWithExpiration("token", 3600000L));
 
             // When
             LoginResponse response = memberService.login(request);

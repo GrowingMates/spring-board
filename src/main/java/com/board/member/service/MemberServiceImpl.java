@@ -1,6 +1,7 @@
 package com.board.member.service;
 
 import com.board.config.jwt.JwtUtil;
+import com.board.config.jwt.TokenWithExpiration;
 import com.board.exception.custom.EmailNotFoundException;
 import com.board.exception.custom.MyEntityNotFoundException;
 import com.board.exception.custom.SignUpException;
@@ -23,8 +24,6 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final JwtUtil jwtUtil;
-
-    private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 1시간
 
     @Override
     @Transactional
@@ -59,8 +58,9 @@ public class MemberServiceImpl implements MemberService {
         Member member = new Member(memberEntity);
         member.checkPassword(request.getPassword());
 
-        String token = jwtUtil.generateToken(member.getEmail(), ACCESS_TOKEN_EXPIRATION);
-        return new LoginResponse(token, ACCESS_TOKEN_EXPIRATION);
+        TokenWithExpiration tokenWithExpiration =
+                jwtUtil.generateTokenWithExpiration(member.getEmail());
+        return new LoginResponse(tokenWithExpiration.getToken(), tokenWithExpiration.getExpiration());
     }
 
     @Override

@@ -19,6 +19,7 @@ public class JwtUtil {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String COOKIE_NAME = "token";
+    private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 1시간
 
     private final JwtProperties jwtProperties;
 
@@ -41,12 +42,16 @@ public class JwtUtil {
         return null;
     }
 
-    public String generateToken(String email, long expirationTime) {
+    public TokenWithExpiration generateTokenWithExpiration(String subject) {
+        return new TokenWithExpiration(generateToken(subject), ACCESS_TOKEN_EXPIRATION);
+    }
+
+    public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email) // sub : 이메일(jwt 주인)
                 .setIssuer(jwtProperties.getIssuer())  // Issuer 설정 (필수아님)
                 .setIssuedAt(new Date()) // 발급시간 (필수아님)
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime)) // 유효시간 필수!
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION)) // 유효시간 필수!
                 .signWith(Keys.hmacShaKeyFor(getSigningKey()), SignatureAlgorithm.HS256)
                 .compact();
     }
