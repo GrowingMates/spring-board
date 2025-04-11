@@ -27,9 +27,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -38,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 class BlogApiControllerIntegrationTest {
 
     @Autowired
@@ -55,6 +58,9 @@ class BlogApiControllerIntegrationTest {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Value("${jwt.secret_key}")
+    private String secretKey;
+
     private static final String MEMBER_EMAIL = "setupMember@example.com";
     private static final String MEMBER_PASSWORD = "12345";
     private static final String MEMBER_NICKNAME = "setupMemberNickname";
@@ -65,6 +71,11 @@ class BlogApiControllerIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         signUpAndLogin();
+    }
+
+    @Test
+    void testJwtSecretKey() {
+        System.out.println("[secret_key from test yml]: " + secretKey);
     }
 
     private void signUpAndLogin() throws Exception {
