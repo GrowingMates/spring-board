@@ -11,9 +11,9 @@ import lombok.Setter;
 @Setter
 public class ArticleCreateRequest {
 
-    @NotBlank
+    @NotBlank(message = "제목이 입력되지 않았습니다.")
     private String title;
-    @NotBlank
+    @NotBlank(message = "내용이 입력되지 않았습니다.")
     private String content;
 
     @Builder

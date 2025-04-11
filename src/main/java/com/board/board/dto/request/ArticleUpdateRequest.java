@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ArticleUpdateRequest {
 
-    @NotBlank
+    @NotBlank(message = "제목이 입력되지 않았습니다.")
     private final String title;
-    @NotBlank
+    @NotBlank(message = "내용이 입력되지 않았습니다.")
     private final String content;
 }
