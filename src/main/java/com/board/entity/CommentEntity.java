@@ -59,6 +59,10 @@ public class CommentEntity {
         this.content = content;
     }
 
+    public void delete() {
+        this.deleted = true;
+    }
+
     @PrePersist
     public void setCreatedAtNow() {
         this.createdAt = LocalDateTime.now();

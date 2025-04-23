@@ -38,8 +38,8 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(long commentId, Long memberId) {
-        compareAuthors(commentId, memberService.findById(memberId));
-        commentRepository.deleteById(commentId);
+        CommentEntity comment = compareAuthors(commentId, memberService.findById(memberId));
+        comment.delete();
     }
 
     private CommentEntity compareAuthors(long commentId, MemberEntity member) {
@@ -49,7 +49,7 @@ public class CommentService {
     }
 
     private CommentEntity findComment(long id) {
-        return commentRepository.findById(id)
+        return commentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }
 }
