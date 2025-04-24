@@ -9,6 +9,8 @@ import com.exception.custom.MyEntityNotFoundException;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,10 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final BlogService blogService;
     private final MemberService memberService;
+
+    public Page<CommentEntity> findAllComments(Long articleId, Pageable pageable) {
+        return commentRepository.findByArticleIdAndDeletedFalseOrderByCreatedAtDesc(articleId, pageable);
+    }
 
     @Transactional
     public CommentEntity createComment(CommentCreateRequest request, Long memberId) {

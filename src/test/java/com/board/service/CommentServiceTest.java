@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 import com.board.dto.request.CommentCreateRequest;
@@ -14,6 +15,7 @@ import com.board.repository.CommentRepository;
 import com.exception.custom.DifferentOwnerException;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,6 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -34,6 +40,37 @@ class CommentServiceTest {
     private BlogService blogService;
     @Mock
     private MemberService memberService;
+
+    @Test
+    @DisplayName("게시글의 댓글들 조회")
+    void 댓글_조회_성공() {
+        // Given
+        MemberEntity member = new MemberEntity("test@example.com", "password", "nickname");
+        MemberEntity member2 = new MemberEntity("member2@example.com", "password", "member2");
+        MemberEntity member3 = new MemberEntity("member3@example.com", "password", "member3");
+        ArticleEntity article = new ArticleEntity("제목", "내용", member);
+
+        CommentEntity comment = new CommentEntity("댓글내용1", article, member);
+        CommentEntity comment2 = new CommentEntity("댓글내용2", article, member2);
+        CommentEntity comment3 = new CommentEntity("댓글내용3", article, member3);
+        CommentEntity comment4 = new CommentEntity("댓글내용4", article, member3);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<CommentEntity> commentEntityList = List.of(comment, comment2, comment3, comment4);
+        Page<CommentEntity> commentPage = new PageImpl<>(commentEntityList, pageable, commentEntityList.size());
+
+        when(commentRepository.findByArticleIdAndDeletedFalseOrderByCreatedAtDesc(anyLong(), any(Pageable.class)))
+                .thenReturn(commentPage);
+
+        // When
+        Page<CommentEntity> returnCommentsList = commentService.findAllComments(1L, pageable);
+
+        // then
+        assertEquals(4, returnCommentsList.getContent().size());
+        assertEquals("댓글내용1", returnCommentsList.getContent().get(0).getContent());
+        assertEquals(member3, returnCommentsList.getContent().get(3).getMember());
+    }
 
     @Test
     @DisplayName("댓글 생성 성공")
@@ -88,7 +125,7 @@ class CommentServiceTest {
 
 
     @Nested
-    @DisplayName("삭제 테스트")
+    @DisplayName("댓글 삭제 테스트")
     class deleteTest {
         @Test
         @DisplayName("댓글_삭제_성공")
@@ -130,5 +167,4 @@ class CommentServiceTest {
             assertThrows(DifferentOwnerException.class, () -> commentService.deleteComment(commentId, memberId));
         }
     }
-
 }
