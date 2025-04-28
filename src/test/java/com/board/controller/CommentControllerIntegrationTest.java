@@ -1,0 +1,127 @@
+package com.board.controller;
+
+import com.board.dto.request.CommentCreateRequest;
+import com.board.dto.request.CommentUpdateRequest;
+import com.board.entity.ArticleEntity;
+import com.board.entity.CommentEntity;
+import com.board.repository.BlogRepository;
+import com.board.repository.CommentRepository;
+import com.config.jwt.JwtUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.member.entity.MemberEntity;
+import com.member.repository.MemberRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+@ActiveProfiles("test")
+class CommentControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
+    private BlogRepository blogRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    private MemberEntity member;
+    private ArticleEntity article;
+    private String jwtToken;
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+
+    @BeforeEach
+    void setup() {
+        member = memberRepository.save(new MemberEntity("test@example.com", "password", "nickname"));
+        article = blogRepository.save(new ArticleEntity("title", "content", member));
+        jwtToken = "Bearer " + jwtUtil.generateToken(member.getEmail());
+    }
+
+    @Test
+    @DisplayName("댓글 생성 성공")
+    void 댓글_생성_성공() throws Exception {
+        // Given
+        CommentCreateRequest request = new CommentCreateRequest("댓글 내용", article.getId());
+
+        // When & Then
+        mockMvc.perform(post("/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header(AUTHORIZATION_HEADER, jwtToken)) // 가짜 인증 헤더
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.content").value("댓글 내용"))
+                .andExpect(jsonPath("$.authorName").value("nickname"));
+    }
+
+    @Test
+    @DisplayName("댓글 조회 성공")
+    void 댓글_조회_성공() throws Exception {
+        // Given
+        CommentEntity comment1 = commentRepository.save(new CommentEntity("댓글 내용1", article, member));
+        CommentEntity comment2 = commentRepository.save(new CommentEntity("댓글 내용2", article, member));
+
+        // When & Then
+        mockMvc.perform(get("/comments")
+                        .param("articleId", String.valueOf(article.getId()))
+                        .param("page", "0")
+                        .param("size", "10")
+                        .header(AUTHORIZATION_HEADER, jwtToken)) // JWT 인증 헤더 추가
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].content").value("댓글 내용2"))
+                .andExpect(jsonPath("$.content[1].content").value("댓글 내용1"));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 성공")
+    void 댓글_수정_성공() throws Exception {
+        // Given
+        CommentEntity comment = commentRepository.save(new CommentEntity("댓글 내용", article, member));
+        CommentUpdateRequest request = new CommentUpdateRequest("수정된 댓글 내용", comment.getId());
+
+        // When & Then
+        mockMvc.perform(patch("/comments/" + comment.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .header(AUTHORIZATION_HEADER, jwtToken)) // JWT 인증 헤더 추가
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").value("수정된 댓글 내용"))
+                .andExpect(jsonPath("$.authorName").value(member.getNickName()));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 성공")
+    void 댓글_삭제_성공() throws Exception {
+        // Given
+        CommentEntity comment = commentRepository.save(new CommentEntity("댓글 내용", article, member));
+
+        // When & Then
+        mockMvc.perform(delete("/comments/" + comment.getId())
+                        .header(AUTHORIZATION_HEADER, jwtToken)) // JWT 인증 헤더 추가
+                .andExpect(status().isNoContent());
+    }
+}
