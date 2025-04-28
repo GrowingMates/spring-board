@@ -1,16 +1,5 @@
 package com.board.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -36,6 +25,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -145,6 +140,22 @@ class BlogApiControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Title 1"))
                 .andExpect(jsonPath("$.content").value("Content 1"));
+    }
+
+    @Test
+    @DisplayName("글 상세조회시 조회수가 정상적으로 상승하면 성공")
+    void 글_상세조회_조회수_상승() throws Exception {
+        MemberEntity member = createAndSaveMember("bb@aa.com", "nickname");
+        ArticleEntity article = blogRepository.save(new ArticleEntity("Title 1", "Content 1", member));
+
+        mockMvc.perform(get("/articles/" + article.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Title 1"))
+                .andExpect(jsonPath("$.content").value("Content 1"))
+                .andExpect(jsonPath("$.viewCount").value(1));
+
+        mockMvc.perform(get("/articles/" + article.getId()))
+                .andExpect(jsonPath("$.viewCount").value(2));
     }
 
     @Test

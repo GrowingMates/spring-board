@@ -117,18 +117,22 @@ class BlogApiControllerTest {
     @DisplayName("개별 게시글 조회 성공 - 내용 포함")
     void 개별_게시글_조회_성공_내용_포함() throws Exception {
         // Given
-        ArticleResponse response = new ArticleResponse(1L, "Title", "Content", 1L);
+        ArticleResponse response = new ArticleResponse(1L, "Title", "Content", 1L, 0);
         MemberEntity member = MemberEntity.builder()
                 .email("abc@example.com")
                 .password("abc")
                 .nickName("abc")
                 .build();
 
-        when(blogService.findById(1L)).thenReturn(ArticleEntity.builder()
+        ArticleEntity article = ArticleEntity.builder()
+                .id(1L)
                 .title(response.getTitle())
                 .content(response.getContent())
                 .member(member)
-                .build());
+                .viewCount(0L) // 초기 조회수 설정
+                .build();
+
+        when(blogService.findByIdAndIncreaseViewCount(1L)).thenReturn(article);
 
         // When & Then
         mockMvc.perform(get("/articles/1"))
@@ -151,7 +155,7 @@ class BlogApiControllerTest {
     void updateArticle_Success() throws Exception {
         // Given
         ArticleUpdateRequest request = new ArticleUpdateRequest("Updated Title", "Updated Content");
-        ArticleResponse response = new ArticleResponse(1L, "Updated Title", "Updated Content", 1L);
+        ArticleResponse response = new ArticleResponse(1L, "Updated Title", "Updated Content", 1L, 0);
 
         MemberEntity member = MemberEntity.builder()
                 .email("abc@example.com")

@@ -39,6 +39,13 @@ public class BlogService {
     }
 
     @Transactional
+    public ArticleEntity findByIdAndIncreaseViewCount(long id) {
+        ArticleEntity article = findArticle(id);
+        article.increaseViewCount();
+        return article;
+    }
+
+    @Transactional
     public void delete(long id, Long memberId) {
         compareAuthors(id, memberService.findById(memberId));
         blogRepository.deleteById(id);
