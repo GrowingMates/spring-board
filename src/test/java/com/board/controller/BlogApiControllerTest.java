@@ -1,14 +1,5 @@
 package com.board.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.dto.response.ArticleResponse;
@@ -18,8 +9,9 @@ import com.config.auth.AuthenticatedMemberArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
-import java.util.List;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,6 +19,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BlogApiController.class)
 class BlogApiControllerTest {
@@ -54,6 +54,7 @@ class BlogApiControllerTest {
     }
 
     @Test
+    @DisplayName("게시글 생성 성공")
     void addArticle_Success() throws Exception {
         // Given
         ArticleCreateRequest request = new ArticleCreateRequest("Title", "Content");
@@ -83,11 +84,12 @@ class BlogApiControllerTest {
     }
 
     @Test
-    void findAllArticles_Success() throws Exception {
+    @DisplayName("전체 게시글 조회 성공 - 내용 미포함")
+    void 전체_게시글_조회_성공() throws Exception {
         // Given
         List<ArticleResponse> responses = List.of(
-                new ArticleResponse(1L, "Title1", "Content1", 1L),
-                new ArticleResponse(2L, "Title2", "Content2", 1L)
+                new ArticleResponse(1L, "Title1", null, 1L),
+                new ArticleResponse(2L, "Title2", null, 1L)
         );
         MemberEntity member = MemberEntity.builder()
                 .email("abc@example.com")
@@ -96,6 +98,7 @@ class BlogApiControllerTest {
                 .build();
         when(blogService.findAll(any())).thenReturn(
                 new PageImpl<>(responses.stream().map(response -> ArticleEntity.builder()
+                        .id(response.getId())
                         .title(response.getTitle())
                         .content(response.getContent())
                         .member(member)
@@ -106,11 +109,13 @@ class BlogApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].title").value("Title1"))
-                .andExpect(jsonPath("$[1].content").value("Content2"));
+                .andExpect(jsonPath("$[0].content").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$[1].id").value(2L));
     }
 
     @Test
-    void findArticle_Success() throws Exception {
+    @DisplayName("개별 게시글 조회 성공 - 내용 포함")
+    void 개별_게시글_조회_성공_내용_포함() throws Exception {
         // Given
         ArticleResponse response = new ArticleResponse(1L, "Title", "Content", 1L);
         MemberEntity member = MemberEntity.builder()
@@ -134,6 +139,7 @@ class BlogApiControllerTest {
 
 
     @Test
+    @DisplayName("게시글 삭제 성공")
     void deleteArticle_Success() throws Exception {
         // When & Then
         mockMvc.perform(delete("/articles/1"))
@@ -141,6 +147,7 @@ class BlogApiControllerTest {
     }
 
     @Test
+    @DisplayName("게시글 수정 성공")
     void updateArticle_Success() throws Exception {
         // Given
         ArticleUpdateRequest request = new ArticleUpdateRequest("Updated Title", "Updated Content");
