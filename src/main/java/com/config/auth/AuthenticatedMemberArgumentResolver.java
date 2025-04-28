@@ -19,7 +19,7 @@ public class AuthenticatedMemberArgumentResolver implements HandlerMethodArgumen
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        // @AuthenticatedMember 가 붙어있고 MemberEntity 타입이면 처리
+        // @AuthenticatedMember 가 붙어있고 Long 타입이면 처리
         return parameter.hasParameterAnnotation(AuthenticatedMember.class)
                 && parameter.getParameterType().equals(Long.class);
     }
