@@ -30,25 +30,25 @@ public class CommentService {
     @Transactional
     public CommentEntity createComment(CommentCreateRequest request, Long memberId) {
         ArticleEntity article = blogService.findById(request.getArticleId());
-        MemberEntity member = memberService.findById(memberId);
+        MemberEntity member = findMemberById(memberId);
         CommentEntity comment = new CommentEntity(request.getContent(), article, member);
         return commentRepository.save(comment);
     }
 
     @Transactional
     public CommentEntity updateComment(CommentUpdateRequest request, Long memberId) {
-        CommentEntity comment = compareAuthors(request.getCommentId(), memberService.findById(memberId));
+        CommentEntity comment = findCommentAndValidateOwner(request.getCommentId(), findMemberById(memberId));
         comment.update(request.getContent());
         return comment;
     }
 
     @Transactional
     public void deleteComment(long commentId, Long memberId) {
-        CommentEntity comment = compareAuthors(commentId, memberService.findById(memberId));
+        CommentEntity comment = findCommentAndValidateOwner(commentId, findMemberById(memberId));
         comment.delete();
     }
 
-    private CommentEntity compareAuthors(long commentId, MemberEntity member) {
+    private CommentEntity findCommentAndValidateOwner(long commentId, MemberEntity member) {
         CommentEntity comment = findComment(commentId);
         comment.validateOwner(member);
         return comment;
@@ -57,5 +57,9 @@ public class CommentService {
     private CommentEntity findComment(long id) {
         return commentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
+    }
+
+    private MemberEntity findMemberById(Long memberId) {
+        return memberService.findById(memberId);
     }
 }

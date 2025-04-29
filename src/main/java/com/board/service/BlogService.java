@@ -26,7 +26,7 @@ public class BlogService {
         return blogRepository.save(ArticleEntity.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .member(memberService.findById(memberId))
+                .member(findMemberById(memberId))
                 .build());
     }
 
@@ -34,38 +34,38 @@ public class BlogService {
         return blogRepository.findAll(pageable);
     }
 
-    public ArticleEntity findById(long id) {
-        return findArticle(id);
-    }
-
     @Transactional
     public ArticleEntity findByIdAndIncreaseViewCount(long id) {
-        ArticleEntity article = findArticle(id);
+        ArticleEntity article = findById(id);
         article.increaseViewCount();
         return article;
     }
 
     @Transactional
     public void delete(long id, Long memberId) {
-        compareAuthors(id, memberService.findById(memberId));
+        compareAuthors(id, findMemberById(memberId));
         blogRepository.deleteById(id);
     }
 
     @Transactional
     public ArticleEntity update(long id, Long memberId, ArticleUpdateRequest request) {
-        ArticleEntity article = compareAuthors(id, memberService.findById(memberId));
+        ArticleEntity article = findById(id);
+        compareAuthors(id, findMemberById(memberId));
         article.update(request.getTitle(), request.getContent());
         return article;
     }
 
-    private ArticleEntity compareAuthors(long articleId, MemberEntity member) {
-        ArticleEntity article = findArticle(articleId);
+    private void compareAuthors(long articleId, MemberEntity member) {
+        ArticleEntity article = findById(articleId);
         article.validateOwner(member);
-        return article;
     }
 
-    private ArticleEntity findArticle(long id) {
+    public ArticleEntity findById(long id) {
         return blogRepository.findById(id)
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
+    }
+
+    private MemberEntity findMemberById(Long memberId) {
+        return memberService.findById(memberId);
     }
 }
