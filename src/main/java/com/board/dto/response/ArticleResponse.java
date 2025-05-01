@@ -1,13 +1,12 @@
 package com.board.dto.response;
 
 import com.board.entity.ArticleEntity;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-@AllArgsConstructor
 public class ArticleResponse {
 
     private final Long id;
@@ -15,6 +14,15 @@ public class ArticleResponse {
     private String content;
     private final Long memberId;
     private final long viewCount;
+
+    @Builder
+    public ArticleResponse(Long id, String title, String content, Long memberId, long viewCount) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.memberId = memberId;
+        this.viewCount = viewCount;
+    }
 
     public ArticleResponse(ArticleEntity article) {
         this.id = article.getId();
@@ -25,12 +33,12 @@ public class ArticleResponse {
     }
 
     public static ArticleResponse withoutContent(ArticleEntity article) {
-        return new ArticleResponse(
-                article.getId(),
-                article.getTitle(),
-                null, // content를 포함하지 않음
-                article.getMember().getId(),
-                article.getViewCount()
-        );
+        return ArticleResponse.builder()
+                .id(article.getId())
+                .title(article.getTitle())
+                .content(null) // content 포함 안함
+                .memberId(article.getMember().getId())
+                .viewCount(article.getViewCount())
+                .build();
     }
 }
