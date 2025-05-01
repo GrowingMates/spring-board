@@ -3,18 +3,18 @@ package com.board.controller;
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.dto.response.ArticleResponse;
+import com.board.dto.response.PageResponse;
 import com.board.entity.ArticleEntity;
 import com.board.service.ArticleService;
 import com.config.auth.annotation.AuthenticatedMember;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -33,17 +33,14 @@ public class ArticleController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<ArticleResponse>> findAllArticles(@RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<PageResponse<ArticleResponse>> findAllArticles(@RequestParam(defaultValue = "0") int page,
+                                                                         @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-
-        List<ArticleResponse> articles = articleService.findAll(pageable)
-                .stream()
-                .map(ArticleResponse::withoutContent)
-                .toList();
+        Page<ArticleResponse> articlePage = articleService.findAll(pageable)
+                .map(ArticleResponse::withoutContent);
 
         return ResponseEntity.ok()
-                .body(articles);
+                .body(PageResponse.from(articlePage));
     }
 
     @GetMapping("/{id}")

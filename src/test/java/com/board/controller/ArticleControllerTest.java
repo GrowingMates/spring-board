@@ -107,10 +107,10 @@ class ArticleControllerTest {
         // When & Then
         mockMvc.perform(get("/articles"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].title").value("Title1"))
-                .andExpect(jsonPath("$[0].content").value(Matchers.nullValue()))
-                .andExpect(jsonPath("$[1].id").value(2L));
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].title").value("Title1"))
+                .andExpect(jsonPath("$.content[0].content").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.content[1].id").value(2L));
     }
 
     @Test

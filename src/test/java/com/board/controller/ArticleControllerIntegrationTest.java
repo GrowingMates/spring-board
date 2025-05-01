@@ -125,9 +125,9 @@ class ArticleControllerIntegrationTest {
 
         mockMvc.perform(get("/articles").param("page", "0").param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(2))
-                .andExpect(jsonPath("$[0].title").value("Title 1"))
-                .andExpect(jsonPath("$[1].title").value("Title 2"));
+                .andExpect(jsonPath("$.content.size()").value(2))
+                .andExpect(jsonPath("$.content[0].title").value("Title 1"))
+                .andExpect(jsonPath("$.content[1].title").value("Title 2"));
     }
 
     @Test
