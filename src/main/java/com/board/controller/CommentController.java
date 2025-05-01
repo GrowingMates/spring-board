@@ -3,15 +3,16 @@ package com.board.controller;
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
 import com.board.dto.response.CommentResponse;
-import com.board.dto.response.PageResponse;
 import com.board.entity.CommentEntity;
 import com.board.service.CommentService;
 import com.config.auth.annotation.AuthenticatedMember;
+import com.util.page.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +27,9 @@ public class CommentController {
     @GetMapping
     public ResponseEntity<PageResponse<CommentResponse>> findAllComments(@RequestParam Long articleId,
                                                                          @RequestParam(defaultValue = "0") int page,
-                                                                         @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+                                                                         @RequestParam(defaultValue = "10") int size,
+                                                                         @RequestParam(defaultValue = "createdAt") String sort) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sort));
         Page<CommentResponse> commentPage = commentService.findAllComments(articleId, pageable)
                 .map(CommentResponse::new);
 
