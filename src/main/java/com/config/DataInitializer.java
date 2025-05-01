@@ -1,6 +1,6 @@
 package com.config;
 
-import com.board.repository.BlogRepository;
+import com.board.repository.ArticleRepository;
 import com.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class DataInitializer {
 
     private final MemberRepository memberRepository;
-    private final BlogRepository blogRepository;
+    private final ArticleRepository articleRepository;
 /* 테스트에 방해되서 주석처리
     @Bean
     public CommandLineRunner initData() {

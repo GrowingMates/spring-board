@@ -1,25 +1,12 @@
 package com.board.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.entity.ArticleEntity;
-import com.board.repository.BlogRepository;
+import com.board.repository.ArticleRepository;
 import com.exception.custom.DifferentOwnerException;
 import com.exception.custom.MyEntityNotFoundException;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
-import java.util.Collections;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,14 +18,22 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
-class BlogServiceTest {
+class ArticleServiceTest {
 
     @InjectMocks
-    private BlogService blogService;
+    private ArticleService articleService;
 
     @Mock
-    private BlogRepository blogRepository;
+    private ArticleRepository articleRepository;
 
     @Mock
     private MemberService memberService;
@@ -66,10 +61,10 @@ class BlogServiceTest {
                 .build();
 
         when(memberService.findById(any(Long.class))).thenReturn(member);
-        when(blogRepository.save(any(ArticleEntity.class))).thenReturn(article);
+        when(articleRepository.save(any(ArticleEntity.class))).thenReturn(article);
 
         // When
-        ArticleEntity savedArticle = blogService.save(request, memberId);
+        ArticleEntity savedArticle = articleService.save(request, memberId);
 
         // Then
         assertNotNull(savedArticle);
@@ -85,10 +80,10 @@ class BlogServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<ArticleEntity> mockPage = new PageImpl<>(Collections.emptyList());
 
-        when(blogRepository.findAll(pageable)).thenReturn(mockPage);
+        when(articleRepository.findAll(pageable)).thenReturn(mockPage);
 
         // When
-        Page<ArticleEntity> result = blogService.findAll(pageable);
+        Page<ArticleEntity> result = articleService.findAll(pageable);
 
         // Then
         assertNotNull(result);
@@ -101,10 +96,10 @@ class BlogServiceTest {
         // Given
         MemberEntity member = new MemberEntity("test@example.com", "password", "testUser");
         ArticleEntity article = new ArticleEntity("title", "content", member);
-        when(blogRepository.findById(anyLong())).thenReturn(Optional.of(article));
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(article));
+        when(articleRepository.findById(anyLong())).thenReturn(Optional.of(article));
+        when(articleRepository.findById(1L)).thenReturn(Optional.of(article));
         // When
-        ArticleEntity foundArticle = blogService.findById(1L);
+        ArticleEntity foundArticle = articleService.findById(1L);
 
         // Then
         assertNotNull(foundArticle);
@@ -117,10 +112,10 @@ class BlogServiceTest {
     @DisplayName("Serivce - 없는 정보 조회 시 에러 발생")
     void findById_ArticleNotFound() {
         // Given
-        when(blogRepository.findById(1L)).thenReturn(Optional.empty());
+        when(articleRepository.findById(1L)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(MyEntityNotFoundException.class, () -> blogService.findById(1L));
+        assertThrows(MyEntityNotFoundException.class, () -> articleService.findById(1L));
     }
 
     @Test
@@ -134,15 +129,15 @@ class BlogServiceTest {
         ArticleEntity article = new ArticleEntity("title", "content", member); // ID 없이 생성
 
         when(memberService.findById(any(Long.class))).thenReturn(member);
-        when(blogRepository.findById(articleId)).thenReturn(Optional.of(article));
+        when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
 
-        doNothing().when(blogRepository).deleteById(articleId);
+        doNothing().when(articleRepository).deleteById(articleId);
 
         // When
-        blogService.delete(articleId, memberId);
+        articleService.delete(articleId, memberId);
 
         // Then
-        verify(blogRepository, times(1)).deleteById(anyLong());
+        verify(articleRepository, times(1)).deleteById(anyLong());
     }
 
 
@@ -158,11 +153,11 @@ class BlogServiceTest {
 
         // Mock 설정
         when(memberService.findById(memberId)).thenReturn(requestingMember);
-        when(blogRepository.findById(articleId)).thenReturn(Optional.of(article));
+        when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
 
         // When & Then
         DifferentOwnerException exception = assertThrows(DifferentOwnerException.class,
-                () -> blogService.delete(articleId, memberId));
+                () -> articleService.delete(articleId, memberId));
 
         assertEquals("권한 없음", exception.getMessage());
     }

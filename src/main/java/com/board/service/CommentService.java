@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final BlogService blogService;
+    private final ArticleService articleService;
     private final MemberService memberService;
 
     public Page<CommentEntity> findAllComments(Long articleId, Pageable pageable) {
@@ -29,7 +29,7 @@ public class CommentService {
 
     @Transactional
     public CommentEntity createComment(CommentCreateRequest request, Long memberId) {
-        ArticleEntity article = blogService.findById(request.getArticleId());
+        ArticleEntity article = articleService.findById(request.getArticleId());
         MemberEntity member = findMemberById(memberId);
         CommentEntity comment = new CommentEntity(request.getContent(), article, member);
         return commentRepository.save(comment);

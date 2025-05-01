@@ -6,13 +6,13 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class MemberSignUpResponse {
+public class SignUpResponse {
 
     private final Long id;
     private final String email;
     private final String nickName;
 
-    public MemberSignUpResponse(MemberEntity memberEntity) {
+    public SignUpResponse(MemberEntity memberEntity) {
         this.id = memberEntity.getId();
         this.email = memberEntity.getEmail();
         this.nickName = memberEntity.getNickName();

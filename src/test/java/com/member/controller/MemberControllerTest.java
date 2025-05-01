@@ -1,17 +1,11 @@
 package com.member.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.config.auth.AuthUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.dto.request.LoginRequest;
-import com.member.dto.request.MemberSignUpRequest;
+import com.member.dto.request.SignUpRequest;
 import com.member.dto.response.LoginResponse;
-import com.member.dto.response.MemberSignUpResponse;
+import com.member.dto.response.SignUpResponse;
 import com.member.service.MemberService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +13,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(MemberController.class)
 class MemberControllerTest {
@@ -35,10 +35,10 @@ class MemberControllerTest {
     @Test
     void signUp_Success() throws Exception {
         // Given
-        MemberSignUpRequest request = new MemberSignUpRequest("test@example.com", "nickname", "password123");
-        MemberSignUpResponse response = new MemberSignUpResponse(1L, "test@example.com", "nickname");
+        SignUpRequest request = new SignUpRequest("test@example.com", "nickname", "password123");
+        SignUpResponse response = new SignUpResponse(1L, "test@example.com", "nickname");
 
-        when(memberService.signUp(any(MemberSignUpRequest.class))).thenReturn(response);
+        when(memberService.signUp(any(SignUpRequest.class))).thenReturn(response);
 
         // When & Then
         mockMvc.perform(post("/members/signup")

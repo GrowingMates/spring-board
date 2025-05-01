@@ -4,7 +4,7 @@ import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
 import com.board.entity.ArticleEntity;
 import com.board.entity.CommentEntity;
-import com.board.repository.BlogRepository;
+import com.board.repository.ArticleRepository;
 import com.board.repository.CommentRepository;
 import com.config.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +41,7 @@ class CommentControllerIntegrationTest {
     private CommentRepository commentRepository;
 
     @Autowired
-    private BlogRepository blogRepository;
+    private ArticleRepository articleRepository;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -57,7 +57,7 @@ class CommentControllerIntegrationTest {
     @BeforeEach
     void setup() {
         member = memberRepository.save(new MemberEntity("test@example.com", "password", "nickname"));
-        article = blogRepository.save(new ArticleEntity("title", "content", member));
+        article = articleRepository.save(new ArticleEntity("title", "content", member));
         jwtToken = "Bearer " + jwtUtil.generateToken(member.getEmail());
     }
 

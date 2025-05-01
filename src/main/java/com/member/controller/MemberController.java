@@ -1,9 +1,9 @@
 package com.member.controller;
 
 import com.member.dto.request.LoginRequest;
-import com.member.dto.request.MemberSignUpRequest;
+import com.member.dto.request.SignUpRequest;
 import com.member.dto.response.LoginResponse;
-import com.member.dto.response.MemberSignUpResponse;
+import com.member.dto.response.SignUpResponse;
 import com.member.service.MemberService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,9 +23,9 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping("/signup")
-    public ResponseEntity<MemberSignUpResponse> signUp(@Valid @RequestBody MemberSignUpRequest request) {
-        MemberSignUpResponse memberSignUpResponse = memberService.signUp(request);
-        return ResponseEntity.ok(memberSignUpResponse);
+    public ResponseEntity<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest request) {
+        SignUpResponse signUpResponse = memberService.signUp(request);
+        return ResponseEntity.ok(signUpResponse);
     }
 
     @PostMapping("/login")

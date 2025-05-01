@@ -4,7 +4,7 @@ import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.dto.response.ArticleResponse;
 import com.board.entity.ArticleEntity;
-import com.board.service.BlogService;
+import com.board.service.ArticleService;
 import com.config.auth.AuthenticatedMemberArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.entity.MemberEntity;
@@ -28,14 +28,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(BlogApiController.class)
-class BlogApiControllerTest {
+@WebMvcTest(ArticleController.class)
+class ArticleControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private BlogService blogService;
+    private ArticleService articleService;
 
     @MockitoBean
     private MemberService memberService;
@@ -72,7 +72,7 @@ class BlogApiControllerTest {
                 .build();
 
         when(memberService.findById(any())).thenReturn(member);
-        when(blogService.save(any(ArticleCreateRequest.class), any(Long.class))).thenReturn(article);
+        when(articleService.save(any(ArticleCreateRequest.class), any(Long.class))).thenReturn(article);
 
         // When & Then
         mockMvc.perform(post("/articles")
@@ -96,7 +96,7 @@ class BlogApiControllerTest {
                 .password("abc")
                 .nickName("abc")
                 .build();
-        when(blogService.findAll(any())).thenReturn(
+        when(articleService.findAll(any())).thenReturn(
                 new PageImpl<>(responses.stream().map(response -> ArticleEntity.builder()
                         .id(response.getId())
                         .title(response.getTitle())
@@ -132,7 +132,7 @@ class BlogApiControllerTest {
                 .viewCount(0L) // 초기 조회수 설정
                 .build();
 
-        when(blogService.findByIdAndIncreaseViewCount(1L)).thenReturn(article);
+        when(articleService.findByIdAndIncreaseViewCount(1L)).thenReturn(article);
 
         // When & Then
         mockMvc.perform(get("/articles/1"))
@@ -162,7 +162,7 @@ class BlogApiControllerTest {
                 .password("abc")
                 .nickName("abc")
                 .build();
-        when(blogService.update(any(Long.class), any(Long.class), any(ArticleUpdateRequest.class)))
+        when(articleService.update(any(Long.class), any(Long.class), any(ArticleUpdateRequest.class)))
                 .thenReturn(ArticleEntity.builder()
                         .title(response.getTitle())
                         .content(response.getContent())

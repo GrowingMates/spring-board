@@ -1,21 +1,14 @@
 package com.member.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import com.config.jwt.JwtUtil;
 import com.config.jwt.TokenWithExpiration;
 import com.exception.custom.SignUpException;
 import com.member.dto.request.LoginRequest;
-import com.member.dto.request.MemberSignUpRequest;
+import com.member.dto.request.SignUpRequest;
 import com.member.dto.response.LoginResponse;
-import com.member.dto.response.MemberSignUpResponse;
+import com.member.dto.response.SignUpResponse;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,6 +17,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
@@ -56,11 +55,11 @@ class MemberServiceImplTest {
         @DisplayName("회원가입 성공")
         void signUp_Success() {
             // Given
-            MemberSignUpRequest request = new MemberSignUpRequest("test@example.com", "1234", "testUser");
+            SignUpRequest request = new SignUpRequest("test@example.com", "1234", "testUser");
             when(memberRepository.save(any(MemberEntity.class))).thenReturn(member);
 
             // When
-            MemberSignUpResponse response = memberService.signUp(request);
+            SignUpResponse response = memberService.signUp(request);
 
             // Then
             assertNotNull(response);
@@ -72,7 +71,7 @@ class MemberServiceImplTest {
         @DisplayName("회원가입 중복 이메일 에러")
         void signUp_DuplicateEmail_ThrowsException() {
             // Given
-            MemberSignUpRequest request = new MemberSignUpRequest("test@example.com", "1234", "testUser");
+            SignUpRequest request = new SignUpRequest("test@example.com", "1234", "testUser");
             when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
 
             // When & Then

@@ -3,12 +3,12 @@ package com.board.controller;
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.entity.ArticleEntity;
-import com.board.repository.BlogRepository;
+import com.board.repository.ArticleRepository;
 import com.config.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.member.dto.request.LoginRequest;
-import com.member.dto.request.MemberSignUpRequest;
+import com.member.dto.request.SignUpRequest;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
 import jakarta.servlet.http.Cookie;
@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("test")
-class BlogApiControllerIntegrationTest {
+class ArticleControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,7 +45,7 @@ class BlogApiControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private BlogRepository blogRepository;
+    private ArticleRepository articleRepository;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -74,7 +74,7 @@ class BlogApiControllerIntegrationTest {
     }
 
     private void signUpAndLogin() throws Exception {
-        sendPostRequest("/members/signup", new MemberSignUpRequest(MEMBER_EMAIL, MEMBER_NICKNAME, MEMBER_PASSWORD))
+        sendPostRequest("/members/signup", new SignUpRequest(MEMBER_EMAIL, MEMBER_NICKNAME, MEMBER_PASSWORD))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(MEMBER_EMAIL))
                 .andExpect(jsonPath("$.nickName").value(MEMBER_NICKNAME));
@@ -120,8 +120,8 @@ class BlogApiControllerIntegrationTest {
         MemberEntity member1 = createAndSaveMember("bb@aa.com", "nickname1");
         MemberEntity member2 = createAndSaveMember("cc@aa.com", "nickname2");
 
-        blogRepository.save(new ArticleEntity("Title 1", "Content 1", member1));
-        blogRepository.save(new ArticleEntity("Title 2", "Content 2", member2));
+        articleRepository.save(new ArticleEntity("Title 1", "Content 1", member1));
+        articleRepository.save(new ArticleEntity("Title 2", "Content 2", member2));
 
         mockMvc.perform(get("/articles").param("page", "0").param("size", "10"))
                 .andExpect(status().isOk())
@@ -134,7 +134,7 @@ class BlogApiControllerIntegrationTest {
     @DisplayName("개별 조회 테스트")
     void findArticleTest() throws Exception {
         MemberEntity member = createAndSaveMember("bb@aa.com", "nickname");
-        ArticleEntity article = blogRepository.save(new ArticleEntity("Title 1", "Content 1", member));
+        ArticleEntity article = articleRepository.save(new ArticleEntity("Title 1", "Content 1", member));
 
         mockMvc.perform(get("/articles/" + article.getId()))
                 .andExpect(status().isOk())
@@ -146,7 +146,7 @@ class BlogApiControllerIntegrationTest {
     @DisplayName("글 상세조회시 조회수가 정상적으로 상승하면 성공")
     void 글_상세조회_조회수_상승() throws Exception {
         MemberEntity member = createAndSaveMember("bb@aa.com", "nickname");
-        ArticleEntity article = blogRepository.save(new ArticleEntity("Title 1", "Content 1", member));
+        ArticleEntity article = articleRepository.save(new ArticleEntity("Title 1", "Content 1", member));
 
         mockMvc.perform(get("/articles/" + article.getId()))
                 .andExpect(status().isOk())
@@ -166,7 +166,7 @@ class BlogApiControllerIntegrationTest {
         mockMvc.perform(delete("/articles/" + article.getId()))
                 .andExpect(status().isUnauthorized());
 
-        assertTrue(blogRepository.findById(article.getId()).isPresent());
+        assertTrue(articleRepository.findById(article.getId()).isPresent());
     }
 
     @Test
@@ -177,7 +177,7 @@ class BlogApiControllerIntegrationTest {
         mockMvc.perform(delete("/articles/" + articleId).cookie(new Cookie("token", tokenCookie)))
                 .andExpect(status().isNoContent());
 
-        assertFalse(blogRepository.findById(articleId).isPresent());
+        assertFalse(articleRepository.findById(articleId).isPresent());
     }
 
     @Test
@@ -203,7 +203,7 @@ class BlogApiControllerIntegrationTest {
     }
 
     private ArticleEntity createAndSaveArticle(String title, String content) {
-        return blogRepository.save(new ArticleEntity(title, content, createAndSaveMember("bb@aa.com", "nickname")));
+        return articleRepository.save(new ArticleEntity(title, content, createAndSaveMember("bb@aa.com", "nickname")));
     }
 
     private Long createArticleAndGetId(String title, String content) throws Exception {

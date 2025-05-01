@@ -1,12 +1,5 @@
 package com.board.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -15,8 +8,6 @@ import com.board.repository.CommentRepository;
 import com.exception.custom.DifferentOwnerException;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,6 +20,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
 
@@ -37,7 +36,7 @@ class CommentServiceTest {
     @Mock
     private CommentRepository commentRepository;
     @Mock
-    private BlogService blogService;
+    private ArticleService articleService;
     @Mock
     private MemberService memberService;
 
@@ -85,7 +84,7 @@ class CommentServiceTest {
         ArticleEntity article = new ArticleEntity("제목", "내용", member);
         CommentEntity comment = new CommentEntity(content, article, member);
 
-        when(blogService.findById(articleId)).thenReturn(article);
+        when(articleService.findById(articleId)).thenReturn(article);
         when(memberService.findById(memberId)).thenReturn(member);
         when(commentRepository.save(any(CommentEntity.class))).thenReturn(comment);
 

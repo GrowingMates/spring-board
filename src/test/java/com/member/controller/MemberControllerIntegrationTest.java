@@ -1,15 +1,9 @@
 package com.member.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.config.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.dto.request.LoginRequest;
-import com.member.dto.request.MemberSignUpRequest;
+import com.member.dto.request.SignUpRequest;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +17,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -97,7 +95,7 @@ class MemberControllerIntegrationTest {
         final String testNickName = "test-nickname";
         final String testPassword = "password123";
 
-        MemberSignUpRequest signUpRequest = new MemberSignUpRequest(testEmail, testNickName, testPassword);
+        SignUpRequest signUpRequest = new SignUpRequest(testEmail, testNickName, testPassword);
         String signUpJson = objectMapper.writeValueAsString(signUpRequest);
 
         mockMvc.perform(post("/members/signup")

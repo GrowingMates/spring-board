@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class MemberSignUpRequest {
+public class SignUpRequest {
 
     @NotBlank(message = "이메일은 필수 입력값이에용")
     @Email
@@ -19,7 +19,7 @@ public class MemberSignUpRequest {
     private final String password;
 
     @Builder
-    public MemberSignUpRequest(String email, String nickName, String password) {
+    public SignUpRequest(String email, String nickName, String password) {
         this.email = email;
         this.nickName = nickName;
         this.password = password;

@@ -3,7 +3,7 @@ package com.board.service;
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.entity.ArticleEntity;
-import com.board.repository.BlogRepository;
+import com.board.repository.ArticleRepository;
 import com.exception.custom.MyEntityNotFoundException;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
@@ -16,14 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
-public class BlogService {
+public class ArticleService {
 
-    private final BlogRepository blogRepository;
+    private final ArticleRepository articleRepository;
     private final MemberService memberService;
 
     @Transactional
     public ArticleEntity save(ArticleCreateRequest request, Long memberId) {
-        return blogRepository.save(ArticleEntity.builder()
+        return articleRepository.save(ArticleEntity.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .member(findMemberById(memberId))
@@ -31,7 +31,7 @@ public class BlogService {
     }
 
     public Page<ArticleEntity> findAll(Pageable pageable) {
-        return blogRepository.findAll(pageable);
+        return articleRepository.findAll(pageable);
     }
 
     @Transactional
@@ -44,7 +44,7 @@ public class BlogService {
     @Transactional
     public void delete(long id, Long memberId) {
         compareAuthors(id, findMemberById(memberId));
-        blogRepository.deleteById(id);
+        articleRepository.deleteById(id);
     }
 
     @Transactional
@@ -61,7 +61,7 @@ public class BlogService {
     }
 
     public ArticleEntity findById(long id) {
-        return blogRepository.findById(id)
+        return articleRepository.findById(id)
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }
 

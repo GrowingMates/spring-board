@@ -7,9 +7,9 @@ import com.exception.custom.MyEntityNotFoundException;
 import com.exception.custom.SignUpException;
 import com.member.domain.Member;
 import com.member.dto.request.LoginRequest;
-import com.member.dto.request.MemberSignUpRequest;
+import com.member.dto.request.SignUpRequest;
 import com.member.dto.response.LoginResponse;
-import com.member.dto.response.MemberSignUpResponse;
+import com.member.dto.response.SignUpResponse;
 import com.member.entity.MemberEntity;
 import com.member.message.ErrorMessage;
 import com.member.repository.MemberRepository;
@@ -27,7 +27,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public MemberSignUpResponse signUp(MemberSignUpRequest request) {
+    public SignUpResponse signUp(SignUpRequest request) {
 
         validateDuplicate(request);
 
@@ -38,10 +38,10 @@ public class MemberServiceImpl implements MemberService {
                 .build();
         MemberEntity savedMember = memberRepository.save(member);
 
-        return new MemberSignUpResponse(savedMember);
+        return new SignUpResponse(savedMember);
     }
 
-    private void validateDuplicate(MemberSignUpRequest request) {
+    private void validateDuplicate(SignUpRequest request) {
         if (memberRepository.findByEmail(request.getEmail()).isPresent()) {
             throw SignUpException.from(ErrorMessage.EMAIL_DUPLICATE);
         }
