@@ -2,19 +2,12 @@ package com.board.entity;
 
 import com.exception.custom.DifferentOwnerException;
 import com.member.entity.MemberEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -41,7 +34,7 @@ public class CommentEntity {
     private LocalDateTime createdAt;
 
     @Column
-    private boolean deleted;
+    private boolean deleted = false;
 
     public CommentEntity(String content, ArticleEntity article, MemberEntity member) {
         this.content = content;
@@ -59,7 +52,7 @@ public class CommentEntity {
         this.content = content;
     }
 
-    public void delete() {
+    public void softDelete() {
         this.deleted = true;
     }
 

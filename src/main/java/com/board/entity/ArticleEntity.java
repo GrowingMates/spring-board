@@ -36,6 +36,9 @@ public class ArticleEntity {
     @Column(nullable = false)
     private long viewCount = 0;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     public ArticleEntity(String title, String content, MemberEntity member) {
         this.title = title;
         this.content = content;
@@ -64,6 +67,10 @@ public class ArticleEntity {
         if (!this.member.equals(member)) {
             throw DifferentOwnerException.from(this.member.getEmail());
         }
+    }
+
+    public void softDelete() {
+        this.deleted = true;
     }
 
     @PrePersist

@@ -24,7 +24,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ArticleServiceTest {
@@ -80,7 +80,7 @@ class ArticleServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<ArticleEntity> mockPage = new PageImpl<>(Collections.emptyList());
 
-        when(articleRepository.findAll(pageable)).thenReturn(mockPage);
+        when(articleRepository.findAllByDeletedFalse(pageable)).thenReturn(mockPage);
 
         // When
         Page<ArticleEntity> result = articleService.findAll(pageable);
@@ -125,19 +125,17 @@ class ArticleServiceTest {
         Long memberId = 3L;
         Long articleId = 1L;
         String email = "test@example.com";
-        MemberEntity member = new MemberEntity(email, "testUser", "nickName"); // ID 없이 생성
-        ArticleEntity article = new ArticleEntity("title", "content", member); // ID 없이 생성
+        MemberEntity member = new MemberEntity(email, "testUser", "nickName");
+        ArticleEntity article = new ArticleEntity("title", "content", member);
 
         when(memberService.findById(any(Long.class))).thenReturn(member);
         when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
-
-        doNothing().when(articleRepository).deleteById(articleId);
 
         // When
         articleService.delete(articleId, memberId);
 
         // Then
-        verify(articleRepository, times(1)).deleteById(anyLong());
+        assertTrue(article.isDeleted()); // softDelete() 호출 후 상태 확인
     }
 
 

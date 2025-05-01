@@ -27,7 +27,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -126,8 +125,28 @@ class ArticleControllerIntegrationTest {
         mockMvc.perform(get("/articles").param("page", "0").param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.size()").value(2))
-                .andExpect(jsonPath("$.content[0].title").value("Title 1"))
-                .andExpect(jsonPath("$.content[1].title").value("Title 2"));
+                .andExpect(jsonPath("$.content[0].title").value("Title 2"))
+                .andExpect(jsonPath("$.content[1].title").value("Title 1"));
+    }
+
+    @Test
+    @DisplayName("삭제된 게시물을 제외하고 전체 조회 테스트")
+    void findAllExcludingDeletedArticlesTest() throws Exception {
+        // Given: 게시물 3개 생성
+        MemberEntity member = createAndSaveMember("bb@aa.com", "nickname");
+        ArticleEntity article1 = articleRepository.save(new ArticleEntity("Title 1", "Content 1", member));
+        ArticleEntity article2 = articleRepository.save(new ArticleEntity("Title 2", "Content 2", member));
+        ArticleEntity article3 = articleRepository.save(new ArticleEntity("Title 3", "Content 3", member));
+
+        // 게시물 1개 삭제
+        article3.softDelete();
+
+        // When: 전체 조회 요청
+        mockMvc.perform(get("/articles").param("page", "0").param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.size()").value(2)) // 삭제된 게시물 제외
+                .andExpect(jsonPath("$.content[0].title").value("Title 2"))
+                .andExpect(jsonPath("$.content[1].title").value("Title 1"));
     }
 
     @Test
@@ -177,7 +196,9 @@ class ArticleControllerIntegrationTest {
         mockMvc.perform(delete("/articles/" + articleId).cookie(new Cookie("token", tokenCookie)))
                 .andExpect(status().isNoContent());
 
-        assertFalse(articleRepository.findById(articleId).isPresent());
+        ArticleEntity deletedArticle = articleRepository.findById(articleId)
+                .orElseThrow(() -> new AssertionError("삭제된 글을 찾을 수 없습니다."));
+        assertTrue(deletedArticle.isDeleted());
     }
 
     @Test

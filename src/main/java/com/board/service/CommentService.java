@@ -24,7 +24,7 @@ public class CommentService {
     private final MemberService memberService;
 
     public Page<CommentEntity> findAllComments(Long articleId, Pageable pageable) {
-        return commentRepository.findByArticleIdAndDeletedFalseOrderByCreatedAtDesc(articleId, pageable);
+        return commentRepository.findByArticleIdAndDeletedFalse(articleId, pageable);
     }
 
     @Transactional
@@ -45,7 +45,7 @@ public class CommentService {
     @Transactional
     public void deleteComment(long commentId, Long memberId) {
         CommentEntity comment = findCommentAndValidateOwner(commentId, findMemberById(memberId));
-        comment.delete();
+        comment.softDelete();
     }
 
     private CommentEntity findCommentAndValidateOwner(long commentId, MemberEntity member) {

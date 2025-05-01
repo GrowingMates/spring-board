@@ -31,7 +31,7 @@ public class ArticleService {
     }
 
     public Page<ArticleEntity> findAll(Pageable pageable) {
-        return articleRepository.findAll(pageable);
+        return articleRepository.findAllByDeletedFalse(pageable);
     }
 
     @Transactional
@@ -43,21 +43,21 @@ public class ArticleService {
 
     @Transactional
     public void delete(long id, Long memberId) {
-        compareAuthors(id, findMemberById(memberId));
-        articleRepository.deleteById(id);
+        getOwnedArticle(id, memberId).softDelete();
     }
 
     @Transactional
     public ArticleEntity update(long id, Long memberId, ArticleUpdateRequest request) {
-        ArticleEntity article = findById(id);
-        compareAuthors(id, findMemberById(memberId));
+        ArticleEntity article = getOwnedArticle(id, memberId);
         article.update(request.getTitle(), request.getContent());
         return article;
     }
 
-    private void compareAuthors(long articleId, MemberEntity member) {
+    private ArticleEntity getOwnedArticle(long articleId, Long memberId) {
         ArticleEntity article = findById(articleId);
+        MemberEntity member = findMemberById(memberId);
         article.validateOwner(member);
+        return article;
     }
 
     public ArticleEntity findById(long id) {

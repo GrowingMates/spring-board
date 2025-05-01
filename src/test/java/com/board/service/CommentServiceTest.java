@@ -59,7 +59,7 @@ class CommentServiceTest {
         List<CommentEntity> commentEntityList = List.of(comment, comment2, comment3, comment4);
         Page<CommentEntity> commentPage = new PageImpl<>(commentEntityList, pageable, commentEntityList.size());
 
-        when(commentRepository.findByArticleIdAndDeletedFalseOrderByCreatedAtDesc(anyLong(), any(Pageable.class)))
+        when(commentRepository.findByArticleIdAndDeletedFalse(anyLong(), any(Pageable.class)))
                 .thenReturn(commentPage);
 
         // When
