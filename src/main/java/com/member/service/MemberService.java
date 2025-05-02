@@ -16,4 +16,8 @@ public interface MemberService {
 
     MemberEntity findById(Long id);
 
+    void logout(Long memberId);
+
+    void withdraw(Long memberId);
+
 }

@@ -15,11 +15,13 @@ import com.member.entity.MemberEntity;
 import com.member.message.ErrorMessage;
 import com.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 @Transactional(readOnly = true)
 public class MemberServiceImpl implements MemberService {
 
@@ -53,7 +55,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        MemberEntity memberEntity = memberRepository.findByEmail(request.getEmail())
+        MemberEntity memberEntity = memberRepository.findByEmailAndDeletedFalse(request.getEmail())
                 .orElseThrow(() -> LoginException.from(ErrorMessage.NOT_CORRECT_LOGIN));
 
         Member member = new Member(memberEntity);
@@ -76,5 +78,13 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }
 
+    public void logout(Long memberId) {
+        log.info("회원 {} 로그아웃함", memberId);
+    }
 
+    @Transactional
+    public void withdraw(Long memberId) {
+        MemberEntity member = findById(memberId);
+        member.softDelete();
+    }
 }

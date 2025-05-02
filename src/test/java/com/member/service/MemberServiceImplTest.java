@@ -89,7 +89,7 @@ class MemberServiceImplTest {
         void login_Success() {
             // Given
             LoginRequest request = new LoginRequest("test@example.com", "1234");
-            when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
+            when(memberRepository.findByEmailAndDeletedFalse(request.getEmail())).thenReturn(Optional.of(member));
             when(jwtUtil.generateTokenWithExpiration(any(String.class)))
                     .thenReturn(new TokenWithExpiration("token", 3600000L));
 
@@ -106,7 +106,7 @@ class MemberServiceImplTest {
         void login_Fail_WrongPassword() {
             // Given
             LoginRequest request = new LoginRequest("test@example.com", "wrongPassword");
-            when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(member));
+            when(memberRepository.findByEmailAndDeletedFalse(request.getEmail())).thenReturn(Optional.of(member));
 
             // When & Then
             assertThrows(IllegalArgumentException.class, () -> memberService.login(request));
@@ -117,7 +117,7 @@ class MemberServiceImplTest {
         void login_Fail_EmailNotFound() {
             // Given
             LoginRequest request = new LoginRequest("nonexistent@example.com", "1234");
-            when(memberRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
+            when(memberRepository.findByEmailAndDeletedFalse(request.getEmail())).thenReturn(Optional.empty());
 
             // When & Then
             assertThrows(LoginException.class, () -> memberService.login(request));

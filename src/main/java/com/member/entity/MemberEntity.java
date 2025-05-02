@@ -36,6 +36,9 @@ public class MemberEntity {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     @Builder
     public MemberEntity(String email, String password, String nickName) {
         this.email = email;
@@ -48,6 +51,10 @@ public class MemberEntity {
         this.email = email;
         this.password = password;
         this.nickName = nickName;
+    }
+
+    public void softDelete() {
+        this.deleted = true;
     }
 
     @PrePersist

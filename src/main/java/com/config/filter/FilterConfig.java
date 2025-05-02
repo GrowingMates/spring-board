@@ -19,8 +19,10 @@ public class FilterConfig {
     public FilterRegistrationBean<JwtAuthFilter> jwtAuthFilterRegistration(JwtAuthFilter jwtAuthFilter) {
         FilterRegistrationBean<JwtAuthFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(jwtAuthFilter);
-        registrationBean.addUrlPatterns("/articles", "/articles/*",
-                "/comments", "/comments/*"); // 특정 URL 패턴에만 필터 적용
+        registrationBean.addUrlPatterns(
+                "/articles", "/articles/*",
+                "/comments", "/comments/*",
+                "/members/logout", "/members/withdraw"); // 특정 URL 패턴에만 필터 적용
         registrationBean.setOrder(1); // 우선순위 설정 (낮을수록 먼저 실행)
         return registrationBean;
     }
