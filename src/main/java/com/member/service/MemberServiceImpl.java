@@ -3,6 +3,7 @@ package com.member.service;
 import com.config.jwt.JwtUtil;
 import com.config.jwt.TokenWithExpiration;
 import com.exception.custom.EmailNotFoundException;
+import com.exception.custom.LoginException;
 import com.exception.custom.MyEntityNotFoundException;
 import com.exception.custom.SignUpException;
 import com.member.domain.Member;
@@ -53,7 +54,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public LoginResponse login(LoginRequest request) {
         MemberEntity memberEntity = memberRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException(ErrorMessage.NOT_CORRECT_LOGIN));
+                .orElseThrow(() -> LoginException.from(ErrorMessage.NOT_CORRECT_LOGIN));
 
         Member member = new Member(memberEntity);
         member.checkPassword(request.getPassword());
