@@ -1,4 +1,4 @@
-package com.board.dto.response;
+package com.util.page;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
