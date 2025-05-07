@@ -33,12 +33,9 @@ public class ArticleResponse {
     }
 
     public static ArticleResponse withoutContent(ArticleEntity article) {
-        return ArticleResponse.builder()
-                .id(article.getId())
-                .title(article.getTitle())
-                .content(null) // content 포함 안함
-                .memberId(article.getMember().getId())
-                .viewCount(article.getViewCount())
-                .build();
+        return new ArticleResponse(article.getId(),
+                article.getTitle(),
+                article.getMember().getId(),
+                article.getViewCount());
     }
 }
