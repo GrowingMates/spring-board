@@ -37,7 +37,7 @@ public class ArticleEntity {
     private long viewCount = 0;
 
     @Column(nullable = false)
-    private boolean deleted = false;
+    private boolean isDeleted = false;
 
     public ArticleEntity(String title, String content, MemberEntity member) {
         this.title = title;
@@ -70,7 +70,7 @@ public class ArticleEntity {
     }
 
     public void softDelete() {
-        this.deleted = true;
+        this.isDeleted = true;
     }
 
     @PrePersist

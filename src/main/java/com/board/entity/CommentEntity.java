@@ -34,7 +34,7 @@ public class CommentEntity {
     private LocalDateTime createdAt;
 
     @Column
-    private boolean deleted = false;
+    private boolean isDeleted = false;
 
     public CommentEntity(String content, ArticleEntity article, MemberEntity member) {
         this.content = content;
@@ -53,7 +53,7 @@ public class CommentEntity {
     }
 
     public void softDelete() {
-        this.deleted = true;
+        this.isDeleted = true;
     }
 
     @PrePersist

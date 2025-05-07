@@ -14,7 +14,7 @@ public class PageResponse<T> {
     private int size;
     private long totalElements;
     private int totalPages;
-    private boolean last;
+    private boolean isLast;
 
     public static <T> PageResponse<T> from(Page<T> page) {
         return new PageResponse<>(
