@@ -43,18 +43,18 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(long commentId, Long memberId) {
+    public void deleteComment(Long commentId, Long memberId) {
         CommentEntity comment = findCommentAndValidateOwner(commentId, findMemberById(memberId));
         comment.softDelete();
     }
 
-    private CommentEntity findCommentAndValidateOwner(long commentId, MemberEntity member) {
+    private CommentEntity findCommentAndValidateOwner(Long commentId, MemberEntity member) {
         CommentEntity comment = findComment(commentId);
         comment.validateOwner(member);
         return comment;
     }
 
-    private CommentEntity findComment(long id) {
+    private CommentEntity findComment(Long id) {
         return commentRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }

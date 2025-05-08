@@ -2,14 +2,15 @@ package com.exception.custom;
 
 import com.exception.CustomException;
 import com.exception.ErrorCodeType;
-import java.util.Map;
 import lombok.Getter;
+
+import java.util.Map;
 
 @Getter
 public class MyEntityNotFoundException extends CustomException {
-    private final long entityId;
+    private final Long entityId;
 
-    private MyEntityNotFoundException(long entityId) {
+    private MyEntityNotFoundException(Long entityId) {
         super(ErrorCodeType.ENTITY_NOT_FOUND);
         this.entityId = entityId;
     }
@@ -19,7 +20,7 @@ public class MyEntityNotFoundException extends CustomException {
         return Map.of("entityId", entityId);
     }
 
-    public static MyEntityNotFoundException from(long entityId) {
+    public static MyEntityNotFoundException from(Long entityId) {
         return new MyEntityNotFoundException(entityId);
     }
 }

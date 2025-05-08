@@ -35,32 +35,32 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleEntity findByIdAndIncreaseViewCount(long id) {
+    public ArticleEntity findByIdAndIncreaseViewCount(Long id) {
         ArticleEntity article = findById(id);
         article.increaseViewCount();
         return article;
     }
 
     @Transactional
-    public void delete(long id, Long memberId) {
+    public void delete(Long id, Long memberId) {
         getOwnedArticle(id, memberId).softDelete();
     }
 
     @Transactional
-    public ArticleEntity update(long id, Long memberId, ArticleUpdateRequest request) {
+    public ArticleEntity update(Long id, Long memberId, ArticleUpdateRequest request) {
         ArticleEntity article = getOwnedArticle(id, memberId);
         article.update(request.getTitle(), request.getContent());
         return article;
     }
 
-    private ArticleEntity getOwnedArticle(long articleId, Long memberId) {
+    private ArticleEntity getOwnedArticle(Long articleId, Long memberId) {
         ArticleEntity article = findById(articleId);
         MemberEntity member = findMemberById(memberId);
         article.validateOwner(member);
         return article;
     }
 
-    public ArticleEntity findById(long id) {
+    public ArticleEntity findById(Long id) {
         return articleRepository.findById(id)
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }
