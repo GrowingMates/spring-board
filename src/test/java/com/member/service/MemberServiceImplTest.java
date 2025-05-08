@@ -1,11 +1,5 @@
 package com.member.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import com.config.jwt.JwtUtil;
 import com.config.jwt.TokenWithExpiration;
 import com.exception.custom.LoginException;
@@ -16,7 +10,6 @@ import com.member.dto.response.LoginResponse;
 import com.member.dto.response.SignUpResponse;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,6 +18,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
@@ -89,7 +88,7 @@ class MemberServiceImplTest {
         void login_Success() {
             // Given
             LoginRequest request = new LoginRequest("test@example.com", "1234");
-            when(memberRepository.findByEmailAndDeletedFalse(request.getEmail())).thenReturn(Optional.of(member));
+            when(memberRepository.findByEmailAndIsDeletedFalse(request.getEmail())).thenReturn(Optional.of(member));
             when(jwtUtil.generateTokenWithExpiration(any(String.class)))
                     .thenReturn(new TokenWithExpiration("token", 3600000L));
 
@@ -106,7 +105,7 @@ class MemberServiceImplTest {
         void login_Fail_WrongPassword() {
             // Given
             LoginRequest request = new LoginRequest("test@example.com", "wrongPassword");
-            when(memberRepository.findByEmailAndDeletedFalse(request.getEmail())).thenReturn(Optional.of(member));
+            when(memberRepository.findByEmailAndIsDeletedFalse(request.getEmail())).thenReturn(Optional.of(member));
 
             // When & Then
             assertThrows(IllegalArgumentException.class, () -> memberService.login(request));
@@ -117,7 +116,7 @@ class MemberServiceImplTest {
         void login_Fail_EmailNotFound() {
             // Given
             LoginRequest request = new LoginRequest("nonexistent@example.com", "1234");
-            when(memberRepository.findByEmailAndDeletedFalse(request.getEmail())).thenReturn(Optional.empty());
+            when(memberRepository.findByEmailAndIsDeletedFalse(request.getEmail())).thenReturn(Optional.empty());
 
             // When & Then
             assertThrows(LoginException.class, () -> memberService.login(request));

@@ -59,7 +59,7 @@ class CommentServiceTest {
         List<CommentEntity> commentEntityList = List.of(comment, comment2, comment3, comment4);
         Page<CommentEntity> commentPage = new PageImpl<>(commentEntityList, pageable, commentEntityList.size());
 
-        when(commentRepository.findByArticleIdAndDeletedFalse(anyLong(), any(Pageable.class)))
+        when(commentRepository.findByArticleIdAndIsDeletedFalse(anyLong(), any(Pageable.class)))
                 .thenReturn(commentPage);
 
         // When
@@ -111,7 +111,7 @@ class CommentServiceTest {
         ArticleEntity article = new ArticleEntity("제목", "내용", member);
         CommentEntity comment = new CommentEntity("기존 댓글 내용", article, member);
 
-        when(commentRepository.findByIdAndDeletedFalse(commentId)).thenReturn(Optional.of(comment));
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(comment));
         when(memberService.findById(memberId)).thenReturn(member);
 
         // When
@@ -137,7 +137,7 @@ class CommentServiceTest {
             ArticleEntity article = new ArticleEntity("제목", "내용", member);
             CommentEntity comment = new CommentEntity("기존 댓글 내용", article, member);
 
-            when(commentRepository.findByIdAndDeletedFalse(commentId)).thenReturn(Optional.of(comment));
+            when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(comment));
             when(memberService.findById(memberId)).thenReturn(member);
 
             // When
@@ -159,7 +159,7 @@ class CommentServiceTest {
             ArticleEntity article = new ArticleEntity("제목", "내용", member);
             CommentEntity comment = new CommentEntity("기존 댓글 내용", article, anotherMember);
 
-            when(commentRepository.findByIdAndDeletedFalse(commentId)).thenReturn(Optional.of(comment));
+            when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(comment));
             when(memberService.findById(memberId)).thenReturn(member);
 
             // When & Then

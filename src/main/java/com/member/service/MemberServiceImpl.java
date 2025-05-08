@@ -55,7 +55,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        MemberEntity memberEntity = memberRepository.findByEmailAndDeletedFalse(request.getEmail())
+        MemberEntity memberEntity = memberRepository.findByEmailAndIsDeletedFalse(request.getEmail())
                 .orElseThrow(() -> LoginException.from(ErrorMessage.NOT_CORRECT_LOGIN));
 
         Member member = new Member(memberEntity);

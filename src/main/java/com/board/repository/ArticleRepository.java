@@ -6,5 +6,5 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ArticleRepository extends JpaRepository<ArticleEntity, Long> {
-    Page<ArticleEntity> findAllByDeletedFalse(Pageable pageable);
+    Page<ArticleEntity> findAllByIsDeletedFalse(Pageable pageable);
 }

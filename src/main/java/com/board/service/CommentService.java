@@ -24,7 +24,7 @@ public class CommentService {
     private final MemberService memberService;
 
     public Page<CommentEntity> findAllComments(Long articleId, Pageable pageable) {
-        return commentRepository.findByArticleIdAndDeletedFalse(articleId, pageable);
+        return commentRepository.findByArticleIdAndIsDeletedFalse(articleId, pageable);
     }
 
     @Transactional
@@ -55,7 +55,7 @@ public class CommentService {
     }
 
     private CommentEntity findComment(long id) {
-        return commentRepository.findByIdAndDeletedFalse(id)
+        return commentRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }
 

@@ -9,8 +9,8 @@ import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
 
-    Optional<CommentEntity> findByIdAndDeletedFalse(Long id);
+    Optional<CommentEntity> findByIdAndIsDeletedFalse(Long id);
 
-    Page<CommentEntity> findByArticleIdAndDeletedFalse(Long articleId, Pageable pageable);
+    Page<CommentEntity> findByArticleIdAndIsDeletedFalse(Long articleId, Pageable pageable);
 
 }

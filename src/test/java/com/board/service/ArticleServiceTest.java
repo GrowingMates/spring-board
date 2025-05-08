@@ -80,7 +80,7 @@ class ArticleServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<ArticleEntity> mockPage = new PageImpl<>(Collections.emptyList());
 
-        when(articleRepository.findAllByDeletedFalse(pageable)).thenReturn(mockPage);
+        when(articleRepository.findAllByIsDeletedFalse(pageable)).thenReturn(mockPage);
 
         // When
         Page<ArticleEntity> result = articleService.findAll(pageable);

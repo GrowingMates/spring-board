@@ -31,7 +31,7 @@ public class ArticleService {
     }
 
     public Page<ArticleEntity> findAll(Pageable pageable) {
-        return articleRepository.findAllByDeletedFalse(pageable);
+        return articleRepository.findAllByIsDeletedFalse(pageable);
     }
 
     @Transactional
