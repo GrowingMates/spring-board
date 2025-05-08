@@ -1,5 +1,6 @@
 package com.board.entity;
 
+import com.common.entity.SoftDeletedEntity;
 import com.exception.custom.DifferentOwnerException;
 import com.member.entity.MemberEntity;
 import jakarta.persistence.*;
@@ -8,12 +9,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class ArticleEntity {
+public class ArticleEntity extends SoftDeletedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,13 +30,7 @@ public class ArticleEntity {
     private MemberEntity member;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
     private long viewCount = 0;
-
-    @Column(nullable = false)
-    private boolean isDeleted = false;
 
     public ArticleEntity(String title, String content, MemberEntity member) {
         this.title = title;
@@ -67,14 +60,5 @@ public class ArticleEntity {
         if (!this.member.equals(member)) {
             throw DifferentOwnerException.from(this.member.getEmail());
         }
-    }
-
-    public void softDelete() {
-        this.isDeleted = true;
-    }
-
-    @PrePersist
-    public void setCreatedAtNow() {
-        this.createdAt = LocalDateTime.now();
     }
 }

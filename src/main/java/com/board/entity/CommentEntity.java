@@ -1,5 +1,6 @@
 package com.board.entity;
 
+import com.common.entity.SoftDeletedEntity;
 import com.exception.custom.DifferentOwnerException;
 import com.member.entity.MemberEntity;
 import jakarta.persistence.*;
@@ -7,12 +8,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class CommentEntity {
+public class CommentEntity extends SoftDeletedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,12 +29,6 @@ public class CommentEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity member;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column
-    private boolean isDeleted = false;
-
     public CommentEntity(String content, ArticleEntity article, MemberEntity member) {
         this.content = content;
         this.article = article;
@@ -50,14 +43,5 @@ public class CommentEntity {
 
     public void update(String content) {
         this.content = content;
-    }
-
-    public void softDelete() {
-        this.isDeleted = true;
-    }
-
-    @PrePersist
-    public void setCreatedAtNow() {
-        this.createdAt = LocalDateTime.now();
     }
 }
