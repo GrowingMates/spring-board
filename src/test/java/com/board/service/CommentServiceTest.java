@@ -154,8 +154,8 @@ class CommentServiceTest {
             Long memberId = 1L;
             Long commentId = 3L;
 
-            MemberEntity member = new MemberEntity("test@example.com", "password", "nickname");
-            MemberEntity anotherMember = new MemberEntity("another@example.com", "anotherPw", "another");
+            MemberEntity member = new MemberEntity(10L, "test@example.com", "password", "nickname");
+            MemberEntity anotherMember = new MemberEntity(11L, "another@example.com", "anotherPw", "another");
             ArticleEntity article = new ArticleEntity("제목", "내용", member);
             CommentEntity comment = new CommentEntity("기존 댓글 내용", article, anotherMember);
 

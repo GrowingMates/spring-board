@@ -145,9 +145,9 @@ class ArticleServiceTest {
         // Given
         Long memberId = 3L; // 요청한 사용자 ID
         long articleId = 1L; // 삭제하려는 게시글 ID
-        MemberEntity requestingMember = new MemberEntity("user@example.com", "1234", "requestingUser");
+        MemberEntity requestingMember = new MemberEntity(22L, "user@example.com", "1234", "requestingUser");
         MemberEntity articleOwner = new MemberEntity("owner@example.com", "1234", "articleOwner");
-        ArticleEntity article = new ArticleEntity("title", "content", articleOwner);
+        ArticleEntity article = new ArticleEntity(33L, "title", "content", articleOwner, 0);
 
         // Mock 설정
         when(memberService.findById(memberId)).thenReturn(requestingMember);
