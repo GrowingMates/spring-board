@@ -36,9 +36,8 @@ public class ArticleService {
 
     @Transactional
     public ArticleEntity findByIdAndIncreaseViewCount(Long id) {
-        ArticleEntity article = findById(id);
-        article.increaseViewCount();
-        return article;
+        articleRepository.increaseViewCount(id);
+        return findById(id);
     }
 
     @Transactional

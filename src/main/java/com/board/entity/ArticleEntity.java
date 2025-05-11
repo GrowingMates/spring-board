@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Table(name = "article")
 public class ArticleEntity extends SoftDeletedEntity {
 
     @Id
