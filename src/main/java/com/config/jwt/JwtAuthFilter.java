@@ -5,12 +5,11 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 
 @RequiredArgsConstructor
@@ -20,9 +19,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final AuthUtil authUtil;
 
     private static final Map<String, Set<String>> AUTH_REQUIRED_PATH = Map.of(
-            "POST", Set.of("/articles", "/comments", "/members/logout"),
+            "POST", Set.of("/articles", "/comments", "/members/*"),
             "PUT", Set.of("/articles/*", "/comments/*"),
-            "DELETE", Set.of("/articles/*", "/comments/*", "/members/withdraw"),
+            "DELETE", Set.of("/articles/*", "/comments/*", "/members/*"),
             "PATCH", Set.of("/articles/*", "/comments/*")
     );
 
@@ -51,7 +50,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private boolean isRequireAuth(String method, String path) {
         Set<String> authRequiredPaths = AUTH_REQUIRED_PATH.get(method);
-        if (authRequiredPaths == null) return false;
+        if (authRequiredPaths == null) {
+            return false;
+        }
 
         for (String authPath : authRequiredPaths) {
             if (authPath.endsWith("/*")) {

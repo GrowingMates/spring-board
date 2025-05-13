@@ -1,5 +1,15 @@
 package com.board.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -22,11 +32,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @IntegrationTest
 class ArticleControllerIntegrationTest {
@@ -67,12 +72,13 @@ class ArticleControllerIntegrationTest {
     }
 
     private void signUpAndLogin() throws Exception {
-        sendPostRequest("/members/signup", new SignUpRequest(MEMBER_EMAIL, MEMBER_NICKNAME, MEMBER_PASSWORD))
+        sendPostRequest("/public/members/signup", new SignUpRequest(MEMBER_EMAIL, MEMBER_NICKNAME, MEMBER_PASSWORD))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(MEMBER_EMAIL))
                 .andExpect(jsonPath("$.nickName").value(MEMBER_NICKNAME));
 
-        MvcResult loginResult = sendPostRequest("/members/login", new LoginRequest(MEMBER_EMAIL, MEMBER_PASSWORD))
+        MvcResult loginResult = sendPostRequest("/public/members/login",
+                new LoginRequest(MEMBER_EMAIL, MEMBER_PASSWORD))
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("token"))
                 .andExpect(jsonPath("$.accessToken").exists())
