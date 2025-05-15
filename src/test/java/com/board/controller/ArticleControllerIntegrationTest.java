@@ -1,15 +1,5 @@
 package com.board.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -22,7 +12,6 @@ import com.member.dto.request.SignUpRequest;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
 import com.support.IntegrationTest;
-import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +21,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IntegrationTest
 class ArticleControllerIntegrationTest {
@@ -58,8 +53,7 @@ class ArticleControllerIntegrationTest {
     private static final String MEMBER_PASSWORD = "12345";
     private static final String MEMBER_NICKNAME = "setupMemberNickname";
     private static final int JWT_EXPIRATION_TIME = 3600000;
-
-    private String tokenCookie;
+    private String accessToken;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -77,23 +71,18 @@ class ArticleControllerIntegrationTest {
                 .andExpect(jsonPath("$.email").value(MEMBER_EMAIL))
                 .andExpect(jsonPath("$.nickName").value(MEMBER_NICKNAME));
 
-        MvcResult loginResult = sendPostRequest("/public/members/login",
+        sendPostRequest("/public/members/login",
                 new LoginRequest(MEMBER_EMAIL, MEMBER_PASSWORD))
                 .andExpect(status().isOk())
-                .andExpect(cookie().exists("token"))
                 .andExpect(jsonPath("$.accessToken").exists())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andExpect(jsonPath("$.expirationTime").value(JWT_EXPIRATION_TIME))
                 .andDo(result -> {
                     String responseBody = result.getResponse().getContentAsString();
-                    String token = objectMapper.readTree(responseBody).get("accessToken").asText();
-                    assertThat(jwtUtil.extractEmail(token)).isEqualTo(MEMBER_EMAIL);
-                    assertThat(jwtUtil.isTokenValid(token)).isTrue();
-                }).andReturn();
-
-        tokenCookie = loginResult.getResponse().getCookie("token").getValue();
-        assertThat(jwtUtil.isTokenValid(tokenCookie)).isTrue();
-        assertThat(jwtUtil.extractEmail(tokenCookie)).isEqualTo(MEMBER_EMAIL);
+                    this.accessToken = objectMapper.readTree(responseBody).get("accessToken").asText();
+                    assertThat(jwtUtil.extractEmail(accessToken)).isEqualTo(MEMBER_EMAIL);
+                    assertThat(jwtUtil.isTokenValid(accessToken)).isTrue();
+                });
     }
 
     @Test
@@ -109,7 +98,7 @@ class ArticleControllerIntegrationTest {
         return mockMvc.perform(post(url)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .cookie(new Cookie("token", tokenCookie)));
+                .header("Authorization", "Bearer " + accessToken));
     }
 
 
@@ -193,7 +182,8 @@ class ArticleControllerIntegrationTest {
     void deleteArticleTest() throws Exception {
         Long articleId = createArticleAndGetId("테스트 제목", "테스트 내용");
 
-        mockMvc.perform(delete("/articles/" + articleId).cookie(new Cookie("token", tokenCookie)))
+        mockMvc.perform(delete("/articles/" + articleId)
+                        .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
 
         ArticleEntity deletedArticle = articleRepository.findById(articleId)
@@ -216,7 +206,7 @@ class ArticleControllerIntegrationTest {
         return mockMvc.perform(put(url)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .cookie(new Cookie("token", tokenCookie)));
+                .header("Authorization", "Bearer " + accessToken));
     }
 
     private MemberEntity createAndSaveMember(String email, String nickname) {

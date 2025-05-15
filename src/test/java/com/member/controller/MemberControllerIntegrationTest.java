@@ -1,11 +1,5 @@
 package com.member.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.ArticleCreateRequest;
 import com.config.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +7,6 @@ import com.member.dto.request.LoginRequest;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
 import com.support.IntegrationTest;
-import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IntegrationTest
 class MemberControllerIntegrationTest {
@@ -57,8 +55,7 @@ class MemberControllerIntegrationTest {
         // When: 로그아웃 요청
         mockMvc.perform(post("/members/logout")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isNoContent())
-                .andExpect(cookie().maxAge("token", 0)); // Then: 쿠키 만료 확인
+                .andExpect(status().isNoContent());
     }
 
     @Test
@@ -69,9 +66,8 @@ class MemberControllerIntegrationTest {
 
         // When: 회원 탈퇴 요청
         mockMvc.perform(delete("/members/withdraw")
-                        .cookie(new Cookie("token", token)))
-                .andExpect(status().isNoContent())
-                .andExpect(cookie().maxAge("token", 0));
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
 
         // Then: 로그인 실패
         LoginRequest loginRequest = new LoginRequest(setUpMemberEmail, setUpMemberPassword);
@@ -91,9 +87,8 @@ class MemberControllerIntegrationTest {
 
         // 로그아웃
         mockMvc.perform(post("/members/logout")
-                        .cookie(new Cookie("token", token)))
-                .andExpect(status().isNoContent())
-                .andExpect(cookie().maxAge("token", 0)); // 쿠키가 만료되었는지 확인
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
 
         // 이후 요청 시 → 쿠키 없음 (즉, 인증 실패 유도)
         mockMvc.perform(post("/articles") // 인증 필요한 API
@@ -110,7 +105,7 @@ class MemberControllerIntegrationTest {
 
         // When: 회원 탈퇴 요청
         mockMvc.perform(delete("/members/withdraw")
-                        .cookie(new Cookie("token", token)))
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNoContent());
 
         // Then: 인증이 필요한 요청 시 실패
@@ -130,7 +125,7 @@ class MemberControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        return result.getResponse().getCookie("token").getValue(); // JWT 토큰 쿠키 값 반환
+        String responseBody = result.getResponse().getContentAsString();
+        return objectMapper.readTree(responseBody).get("accessToken").asText(); // JWT 토큰 쿠키 값 반환
     }
-
 }

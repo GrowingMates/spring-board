@@ -4,13 +4,12 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 @RequiredArgsConstructor
 @Service
@@ -22,19 +21,8 @@ public class JwtUtil {
     private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 1시간
 
     private final JwtProperties jwtProperties;
-
-    public String extractToken(HttpServletRequest request) {
-        if (request.getCookies() != null) {
-            return Arrays.stream(request.getCookies())
-                    .filter(cookie -> COOKIE_NAME.equals(cookie.getName()))
-                    .map(Cookie::getValue)
-                    .findFirst()
-                    .orElseGet(() -> extractFromHeader(request)); // 없으면 헤더에서 추출
-        }
-        return extractFromHeader(request); // 쿠키 자체가 없으면 바로 헤더에서 추출
-    }
-
-    private String extractFromHeader(HttpServletRequest request) {
+    
+    public String extractFromHeader(HttpServletRequest request) {
         String header = request.getHeader(AUTHORIZATION_HEADER);
         if (header != null && header.startsWith(BEARER_PREFIX)) {
             return header.substring(BEARER_PREFIX.length());
