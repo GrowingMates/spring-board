@@ -12,12 +12,13 @@ public enum AuthRequiredPath {
     UPDATE_ARTICLE("/articles/*", List.of(HttpMethod.PUT, HttpMethod.PATCH)),
     DELETE_ARTICLE("/articles/*", List.of(HttpMethod.DELETE)),
 
-    CREATE_COMMENT("/comments", List.of(HttpMethod.POST)),
-    UPDATE_COMMENT("/comments/*", List.of(HttpMethod.PUT, HttpMethod.PATCH)),
-    DELETE_COMMENT("/comments/*", List.of(HttpMethod.DELETE)),
+    CREATE_COMMENT("/articles/*/comments", List.of(HttpMethod.POST)),
+    UPDATE_COMMENT("/articles/*/comments/*", List.of(HttpMethod.PUT, HttpMethod.PATCH)),
+    DELETE_COMMENT("/articles/*/comments/*", List.of(HttpMethod.DELETE)),
 
-    CREATE_MEMBER("/members/*", List.of(HttpMethod.POST)),
-    DELETE_MEMBER("/members/*", List.of(HttpMethod.DELETE));
+    CREATE_MEMBER("/members", List.of(HttpMethod.POST)),
+    DELETE_MEMBER("/members/*", List.of(HttpMethod.DELETE)),
+    LOGOUT_MEMBER("/members/*", List.of(HttpMethod.POST));
 
     private final String pathPattern;
     private final List<HttpMethod> methods;
@@ -32,11 +33,10 @@ public enum AuthRequiredPath {
     }
 
     private static boolean pathMatchesPattern(String path, String pattern) {
-        if (pattern.endsWith("/*")) {
-            String base = pattern.substring(0, pattern.length() - 2);
-            return path.startsWith(base + "/");
-        } else {
-            return path.equals(pattern);
-        }
+        String regexPattern = pattern
+                .replace(".", "\\.")
+                .replace("/*", "/[^/]+")
+                .replace("/**", "(/[^/]+)*");
+        return path.matches("^" + regexPattern + "$");
     }
 }

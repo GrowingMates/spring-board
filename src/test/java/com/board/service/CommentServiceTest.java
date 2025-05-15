@@ -1,15 +1,25 @@
 package com.board.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
 import com.board.entity.ArticleEntity;
 import com.board.entity.CommentEntity;
 import com.board.repository.CommentRepository;
 import com.exception.custom.DifferentOwnerException;
+import com.exception.custom.MyEntityNotFoundException;
+import com.exception.custom.NotIncludeBoardException;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,14 +29,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -40,130 +42,213 @@ class CommentServiceTest {
     @Mock
     private MemberService memberService;
 
-    @Test
-    @DisplayName("게시글의 댓글들 조회")
-    void 댓글_조회_성공() {
-        // Given
-        MemberEntity member = new MemberEntity("test@example.com", "password", "nickname");
-        MemberEntity member2 = new MemberEntity("member2@example.com", "password", "member2");
-        MemberEntity member3 = new MemberEntity("member3@example.com", "password", "member3");
-        ArticleEntity article = new ArticleEntity("제목", "내용", member);
+    private MemberEntity testMember;
+    private ArticleEntity testArticle;
+    private CommentEntity testComment;
+    private Long articleId = 1L;
+    private Long memberId = 1L;
+    private Long commentId = 3L;
 
-        CommentEntity comment = new CommentEntity("댓글내용1", article, member);
-        CommentEntity comment2 = new CommentEntity("댓글내용2", article, member2);
-        CommentEntity comment3 = new CommentEntity("댓글내용3", article, member3);
-        CommentEntity comment4 = new CommentEntity("댓글내용4", article, member3);
-
-        Pageable pageable = PageRequest.of(0, 10);
-
-        List<CommentEntity> commentEntityList = List.of(comment, comment2, comment3, comment4);
-        Page<CommentEntity> commentPage = new PageImpl<>(commentEntityList, pageable, commentEntityList.size());
-
-        when(commentRepository.findByArticleIdAndIsDeletedFalse(anyLong(), any(Pageable.class)))
-                .thenReturn(commentPage);
-
-        // When
-        Page<CommentEntity> returnCommentsList = commentService.findAllComments(1L, pageable);
-
-        // then
-        assertEquals(4, returnCommentsList.getContent().size());
-        assertEquals("댓글내용1", returnCommentsList.getContent().get(0).getContent());
-        assertEquals(member3, returnCommentsList.getContent().get(3).getMember());
+    @BeforeEach
+    void setUp() {
+        testMember = new MemberEntity(memberId, "test@example.com", "password", "nickname");
+        testArticle = new ArticleEntity(articleId, "제목", "내용", testMember, 0);
+        testComment = new CommentEntity(commentId, "기존 댓글 내용", testArticle, testMember);
     }
 
     @Test
-    @DisplayName("댓글 생성 성공")
-    void 댓글_생성_성공() {
+    @DisplayName("특정 게시글의 댓글 목록을 페이지 단위로 조회한다.")
+    void 페이지_조회() {
         // Given
-        Long memberId = 1L;
-        Long articleId = 2L;
-        String content = "댓글 내용";
-        CommentCreateRequest request = new CommentCreateRequest(content, articleId);
+        MemberEntity member2 = new MemberEntity(2L, "member2@example.com", "password", "member2");
+        CommentEntity comment2 = new CommentEntity(2L, "댓글내용2", testArticle, member2);
+        Pageable pageable = PageRequest.of(0, 10);
+        List<CommentEntity> comments = List.of(testComment, comment2);
+        Page<CommentEntity> commentPage = new PageImpl<>(comments, pageable, comments.size());
 
-        MemberEntity member = new MemberEntity("test@example.com", "password", "nickname");
-        ArticleEntity article = new ArticleEntity("제목", "내용", member);
-        CommentEntity comment = new CommentEntity(content, article, member);
-
-        when(articleService.findById(articleId)).thenReturn(article);
-        when(memberService.findById(memberId)).thenReturn(member);
-        when(commentRepository.save(any(CommentEntity.class))).thenReturn(comment);
+        when(articleService.findById(articleId)).thenReturn(testArticle);
+        when(commentRepository.findByArticleAndIsDeletedFalse(testArticle, pageable)).thenReturn(commentPage);
 
         // When
-        CommentEntity createdComment = commentService.createComment(request, memberId);
+        Page<CommentEntity> result = commentService.findAllComments(articleId, pageable);
 
         // Then
-        assertNotNull(createdComment);
-        assertEquals(content, createdComment.getContent());
-        assertEquals(article, createdComment.getArticle());
-        assertEquals(member, createdComment.getMember());
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getContent()).isEqualTo(testComment.getContent());
+        assertThat(result.getContent().get(0).getMember().getId()).isEqualTo(testMember.getId());
     }
 
     @Test
-    @DisplayName("댓글_수정_성공")
-    void 댓글_수정_성공() {
+    @DisplayName("존재하지 않는 게시글 ID로 댓글 목록을 조회하면 예외가 발생한다.")
+    void 존재하지_않는_게시글_ID로_댓글_목록을_조회하면_예외가_발생() {
         // Given
-        Long memberId = 1L;
-        Long commentId = 3L;
+        Pageable pageable = PageRequest.of(0, 10);
+        when(articleService.findById(articleId)).thenThrow(MyEntityNotFoundException.class);
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.findAllComments(articleId, pageable))
+                .isInstanceOf(MyEntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("새로운 댓글을 생성하고 저장한다.")
+    void 새로운_댓글을_생성하고_저장() {
+        // Given
+        String content = "새로운 댓글 내용";
+        CommentCreateRequest request = new CommentCreateRequest(content);
+        CommentEntity savedComment = new CommentEntity(2L, content, testArticle, testMember);
+
+        when(articleService.findById(articleId)).thenReturn(testArticle);
+        when(memberService.findById(memberId)).thenReturn(testMember);
+        when(commentRepository.save(any(CommentEntity.class))).thenReturn(savedComment);
+
+        // When
+        CommentEntity result = commentService.createComment(articleId, request, memberId);
+
+        // Then
+        assertThat(result.getContent()).isEqualTo(content);
+        assertThat(result.getArticle().getId()).isEqualTo(articleId);
+        assertThat(result.getMember().getId()).isEqualTo(memberId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글에 댓글을 생성하려고 하면 예외가 발생한다.")
+    void 존재하지_않는_게시글에_댓글을_생성하려고_하면_예외가_발생() {
+        // Given
+        CommentCreateRequest request = new CommentCreateRequest("새로운 댓글 내용");
+        when(articleService.findById(articleId)).thenThrow(MyEntityNotFoundException.class);
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.createComment(articleId, request, memberId))
+                .isInstanceOf(MyEntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 회원으로 댓글을 생성하려고 하면 예외가 발생한다.")
+    void 존재하지_않는_회원으로_댓글을_생성하려고_하면_예외가_발생() {
+        // Given
+        CommentCreateRequest request = new CommentCreateRequest("새로운 댓글 내용");
+        when(articleService.findById(articleId)).thenReturn(testArticle);
+        when(memberService.findById(memberId)).thenThrow(MyEntityNotFoundException.class);
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.createComment(articleId, request, memberId))
+                .isInstanceOf(MyEntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("댓글 내용을 수정한다.")
+    void 댓글_내용을_수정() {
+        // Given
         String updatedContent = "수정된 댓글 내용";
         CommentUpdateRequest request = new CommentUpdateRequest(updatedContent, commentId);
 
-        MemberEntity member = new MemberEntity("test@example.com", "password", "nickname");
-        ArticleEntity article = new ArticleEntity("제목", "내용", member);
-        CommentEntity comment = new CommentEntity("기존 댓글 내용", article, member);
-
-        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(comment));
-        when(memberService.findById(memberId)).thenReturn(member);
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(testComment));
+        when(memberService.findById(memberId)).thenReturn(testMember);
 
         // When
-        CommentEntity updatedComment = commentService.updateComment(request, memberId);
+        CommentEntity result = commentService.updateComment(articleId, commentId, request, memberId);
 
         // Then
-        assertNotNull(updatedComment);
-        assertEquals(updatedContent, updatedComment.getContent());
+        assertThat(result.getContent()).isEqualTo(updatedContent);
     }
 
+    @Test
+    @DisplayName("존재하지 않는 댓글을 수정하려고 하면 예외가 발생한다.")
+    void 존재하지_않는_댓글을_수정하려고_하면_예외가_발생() {
+        // Given
+        CommentUpdateRequest request = new CommentUpdateRequest("수정된 댓글 내용", commentId);
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.empty());
 
-    @Nested
-    @DisplayName("댓글 삭제 테스트")
-    class deleteTest {
-        @Test
-        @DisplayName("댓글_삭제_성공")
-        void 댓글_삭제_성공() {
-            // Given
-            Long memberId = 1L;
-            Long commentId = 3L;
+        // When & Then
+        assertThatThrownBy(() -> commentService.updateComment(articleId, commentId, request, memberId))
+                .isInstanceOf(MyEntityNotFoundException.class);
+    }
 
-            MemberEntity member = new MemberEntity("test@example.com", "password", "nickname");
-            ArticleEntity article = new ArticleEntity("제목", "내용", member);
-            CommentEntity comment = new CommentEntity("기존 댓글 내용", article, member);
+    @Test
+    @DisplayName("수정하려는 댓글이 해당 게시글에 속하지 않으면 예외가 발생한다.")
+    void 수정하려는_댓글이_해당_게시글에_속하지_않으면_예외가_발생() {
 
-            when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(comment));
-            when(memberService.findById(memberId)).thenReturn(member);
+        ArticleEntity anotherArticle = new ArticleEntity(999L, "제목", "내용", testMember, 0);
+        CommentEntity anotherComment = new CommentEntity(commentId, "기존 댓글 내용", anotherArticle, testMember);
 
-            // When
-            commentService.deleteComment(commentId, memberId);
+        // Given
+        CommentUpdateRequest request = new CommentUpdateRequest("수정된 댓글 내용", commentId);
 
-            // Then
-            assertEquals(true, comment.isDeleted());
-        }
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(anotherComment));
 
-        @Test
-        @DisplayName("작성자 다를 경우 삭제 실패")
-        void 작성자_다르면_댓글_삭제_실패() {
-            // Given
-            Long memberId = 1L;
-            Long commentId = 3L;
+        // When & Then
+        assertThatThrownBy(() -> commentService.updateComment(articleId, commentId, request, memberId))
+                .isInstanceOf(NotIncludeBoardException.class);
+    }
 
-            MemberEntity member = new MemberEntity(10L, "test@example.com", "password", "nickname");
-            MemberEntity anotherMember = new MemberEntity(11L, "another@example.com", "anotherPw", "another");
-            ArticleEntity article = new ArticleEntity("제목", "내용", member);
-            CommentEntity comment = new CommentEntity("기존 댓글 내용", article, anotherMember);
+    @Test
+    @DisplayName("댓글을 soft delete 한다.")
+    void 댓글을_soft_delete_한다() {
+        // Given
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(testComment));
+        when(memberService.findById(memberId)).thenReturn(testMember);
 
-            when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(comment));
-            when(memberService.findById(memberId)).thenReturn(member);
+        // When
+        commentService.deleteComment(articleId, commentId, memberId);
 
-            // When & Then
-            assertThrows(DifferentOwnerException.class, () -> commentService.deleteComment(commentId, memberId));
-        }
+        // Then
+        assertThatCode(() -> commentService.deleteComment(articleId, commentId, memberId))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 댓글을 삭제하려고 하면 예외가 발생한다.")
+    void 존재하지_않는_댓글을_삭제하려고_하면_예외가_발생() {
+        // given
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> commentService.deleteComment(articleId, commentId, memberId))
+                .isInstanceOf(MyEntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("삭제하려는 댓글이 해당 게시글에 속하지 않으면 예외가 발생한다.")
+    void 삭제하려는_댓글이_해당_게시글에_속하지_않으면_예외가_발생() {
+        // Given
+        ArticleEntity anotherArticle = new ArticleEntity(999L, "제목", "내용", testMember, 0);
+        CommentEntity anotherComment = new CommentEntity(commentId, "기존 댓글 내용", anotherArticle, testMember);
+
+        // when
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(anotherComment));
+
+        // then
+        assertThatThrownBy(() -> commentService.deleteComment(articleId, commentId, memberId))
+                .isInstanceOf(NotIncludeBoardException.class);
+    }
+
+    @Test
+    @DisplayName("삭제 권한이 없는 사용자가 댓글을 삭제하려고 하면 예외가 발생한다.")
+    void 삭제_권한이_없는_사용자가_댓글을_삭제하려고_하면_예외가_발생() {
+        // given
+        MemberEntity anotherMember = new MemberEntity(999L, "not-owner@example.com", "pw", "nick");
+
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(testComment));
+        when(memberService.findById(anotherMember.getId())).thenReturn(anotherMember);
+
+        // when & then
+        assertThatThrownBy(() -> commentService.deleteComment(articleId, commentId, anotherMember.getId()))
+                .isInstanceOf(DifferentOwnerException.class);
+    }
+
+    @Test
+    @DisplayName("수정 권한이 없는 사용자가 댓글을 수정하려고 하면 예외가 발생한다.")
+    void 수정_권한이_없는_사용자가_댓글을_수정하려고_하면_예외가_발생() {
+        // given
+        MemberEntity anotherMember = new MemberEntity(999L, "not-owner@example.com", "pw", "nick");
+
+        CommentUpdateRequest request = new CommentUpdateRequest("수정된 댓글 내용", commentId);
+        when(commentRepository.findByIdAndIsDeletedFalse(commentId)).thenReturn(Optional.of(testComment));
+        when(memberService.findById(anotherMember.getId())).thenReturn(anotherMember);
+
+        // when & then
+        assertThatThrownBy(() -> commentService.updateComment(articleId, commentId, request, anotherMember.getId()))
+                .isInstanceOf(DifferentOwnerException.class);
     }
 }

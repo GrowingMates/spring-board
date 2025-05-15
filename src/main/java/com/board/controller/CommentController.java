@@ -27,13 +27,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/comments")
+@RequestMapping("/articles/{articleId}/comments")
 public class CommentController {
 
     private final CommentService commentService;
 
     @GetMapping
-    public ResponseEntity<PageResponse<CommentResponse>> findAllComments(@RequestParam Long articleId,
+    public ResponseEntity<PageResponse<CommentResponse>> findAllComments(@PathVariable Long articleId,
                                                                          @RequestParam(defaultValue = "0") int page,
                                                                          @RequestParam(defaultValue = "10") int size,
                                                                          @RequestParam(defaultValue = "latest") String sort) {
@@ -45,28 +45,30 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<CommentResponse> addComment(@Valid @RequestBody CommentCreateRequest request,
+    public ResponseEntity<CommentResponse> addComment(@PathVariable Long articleId,
+                                                      @Valid @RequestBody CommentCreateRequest request,
                                                       @AuthenticatedMember Long memberId) {
-        CommentEntity savedComment = commentService.createComment(request, memberId);
+        CommentEntity savedComment = commentService.createComment(articleId, request, memberId);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new CommentResponse(savedComment));
     }
 
     @PatchMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(@PathVariable long commentId,
+    public ResponseEntity<CommentResponse> updateComment(@PathVariable Long articleId,
+                                                         @PathVariable Long commentId,
                                                          @Valid @RequestBody CommentUpdateRequest request,
                                                          @AuthenticatedMember Long memberId) {
-        request.setCommentId(commentId);
-        CommentEntity updatedComment = commentService.updateComment(request, memberId);
+        CommentEntity updatedComment = commentService.updateComment(articleId, commentId, request, memberId);
         return ResponseEntity.ok()
                 .body(new CommentResponse(updatedComment));
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable long commentId,
+    public ResponseEntity<Void> deleteComment(@PathVariable Long articleId,
+                                              @PathVariable Long commentId,
                                               @AuthenticatedMember Long memberId) {
-        commentService.deleteComment(commentId, memberId);
+        commentService.deleteComment(articleId, commentId, memberId);
         return ResponseEntity.noContent()
                 .build();
     }

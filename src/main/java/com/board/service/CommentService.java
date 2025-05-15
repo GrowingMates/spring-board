@@ -24,34 +24,33 @@ public class CommentService {
     private final MemberService memberService;
 
     public Page<CommentEntity> findAllComments(Long articleId, Pageable pageable) {
-        return commentRepository.findByArticleIdAndIsDeletedFalse(articleId, pageable);
+        ArticleEntity article = articleService.findById(articleId);
+        return commentRepository.findByArticleAndIsDeletedFalse(article, pageable);
     }
 
     @Transactional
-    public CommentEntity createComment(CommentCreateRequest request, Long memberId) {
-        ArticleEntity article = articleService.findById(request.getArticleId());
+    public CommentEntity createComment(Long articleId, CommentCreateRequest request, Long memberId) {
+        ArticleEntity article = articleService.findById(articleId);
         MemberEntity member = findMemberById(memberId);
         CommentEntity comment = new CommentEntity(request.getContent(), article, member);
         return commentRepository.save(comment);
     }
 
     @Transactional
-    public CommentEntity updateComment(CommentUpdateRequest request, Long memberId) {
-        CommentEntity comment = findCommentAndValidateOwner(request.getCommentId(), findMemberById(memberId));
-        comment.update(request.getContent());
+    public CommentEntity updateComment(Long articleId, Long commentId, CommentUpdateRequest request, Long memberId) {
+        CommentEntity comment = findComment(commentId);
+        comment.validateArticle(articleId);
+        MemberEntity member = findMemberById(memberId);
+        comment.update(request.getContent(), member);
         return comment;
     }
 
     @Transactional
-    public void deleteComment(Long commentId, Long memberId) {
-        CommentEntity comment = findCommentAndValidateOwner(commentId, findMemberById(memberId));
-        comment.softDelete();
-    }
-
-    private CommentEntity findCommentAndValidateOwner(Long commentId, MemberEntity member) {
+    public void deleteComment(Long articleId, Long commentId, Long memberId) {
         CommentEntity comment = findComment(commentId);
-        comment.validateOwner(member);
-        return comment;
+        comment.validateArticle(articleId);
+        MemberEntity member = findMemberById(memberId);
+        comment.softDelete(member);
     }
 
     private CommentEntity findComment(Long id) {

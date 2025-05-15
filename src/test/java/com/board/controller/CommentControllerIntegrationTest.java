@@ -1,5 +1,12 @@
 package com.board.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -17,10 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IntegrationTest
 class CommentControllerIntegrationTest {
@@ -59,10 +62,10 @@ class CommentControllerIntegrationTest {
     @DisplayName("댓글 생성 성공")
     void 댓글_생성_성공() throws Exception {
         // Given
-        CommentCreateRequest request = new CommentCreateRequest("댓글 내용", article.getId());
+        CommentCreateRequest request = new CommentCreateRequest("댓글 내용");
 
         // When & Then
-        mockMvc.perform(post("/comments")
+        mockMvc.perform(post("/articles/" + article.getId() + "/comments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .header(AUTHORIZATION_HEADER, jwtToken)) // 가짜 인증 헤더
@@ -79,7 +82,7 @@ class CommentControllerIntegrationTest {
         CommentEntity comment2 = commentRepository.save(new CommentEntity("댓글 내용2", article, member));
 
         // When & Then
-        mockMvc.perform(get("/comments")
+        mockMvc.perform(get("/articles/" + article.getId() + "/comments")
                         .param("articleId", String.valueOf(article.getId()))
                         .param("page", "0")
                         .param("size", "10")
@@ -98,7 +101,7 @@ class CommentControllerIntegrationTest {
         CommentUpdateRequest request = new CommentUpdateRequest("수정된 댓글 내용", comment.getId());
 
         // When & Then
-        mockMvc.perform(patch("/comments/" + comment.getId())
+        mockMvc.perform(patch("/articles/" + article.getId() + "/comments/" + comment.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .header(AUTHORIZATION_HEADER, jwtToken)) // JWT 인증 헤더 추가
@@ -114,7 +117,7 @@ class CommentControllerIntegrationTest {
         CommentEntity comment = commentRepository.save(new CommentEntity("댓글 내용", article, member));
 
         // When & Then
-        mockMvc.perform(delete("/comments/" + comment.getId())
+        mockMvc.perform(delete("/articles/" + article.getId() + "/comments/" + comment.getId())
                         .header(AUTHORIZATION_HEADER, jwtToken)) // JWT 인증 헤더 추가
                 .andExpect(status().isNoContent());
     }

@@ -1,7 +1,7 @@
 package com.board.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -45,22 +45,30 @@ class CommentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private final Long articleId = 1L;
+    private final Long commentId = 10L;
+    private final Long memberId = 100L;
+
     @BeforeEach
     void setup() throws Exception {
         when(authenticatedMemberArgumentResolver.supportsParameter(any())).thenReturn(true);
         when(authenticatedMemberArgumentResolver.resolveArgument(any(), any(), any(), any()))
-                .thenReturn(1L); // Long memberId 주입
+                .thenReturn(memberId); // @AuthenticatedMember 역할
     }
 
     @Test
     @DisplayName("댓글 생성 성공")
     void 댓글_생성() throws Exception {
-        CommentCreateRequest request = new CommentCreateRequest("댓글 내용", 1L);
+        // given
+        CommentCreateRequest request = new CommentCreateRequest("댓글 내용");
         MemberEntity member = new MemberEntity("이메일", "패스워드", "닉네임");
         CommentEntity comment = new CommentEntity("댓글 내용", null, member);
-        when(commentService.createComment(any(CommentCreateRequest.class), anyLong())).thenReturn(comment);
 
-        mockMvc.perform(post("/comments")
+        when(commentService.createComment(eq(articleId), any(CommentCreateRequest.class), eq(memberId)))
+                .thenReturn(comment);
+
+        // when & then
+        mockMvc.perform(post("/articles/{articleId}/comments", articleId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -68,24 +76,21 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.authorName").value("닉네임"));
     }
 
-
     @Test
-    @DisplayName("댓글_전체_조회_성공")
+    @DisplayName("댓글 전체 조회 성공")
     void 댓글_전체_조회_성공() throws Exception {
-        // Given
+        // given
         MemberEntity member = new MemberEntity("email", "password", "nickName");
         ArticleEntity article = new ArticleEntity("title", "content", member);
-
-        List<CommentEntity> responses = List.of(
+        List<CommentEntity> comments = List.of(
                 new CommentEntity("내용1", article, member),
                 new CommentEntity("내용2", article, member));
-        Page<CommentEntity> pageResult = new PageImpl<>(responses);
+        Page<CommentEntity> pageResult = new PageImpl<>(comments);
 
-        when(commentService.findAllComments(anyLong(), any())).thenReturn(pageResult);
+        when(commentService.findAllComments(eq(articleId), any())).thenReturn(pageResult);
 
-        // When & Then
-        mockMvc.perform(get("/comments")
-                        .param("articleId", "1")
+        // when & then
+        mockMvc.perform(get("/articles/{articleId}/comments", articleId)
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
@@ -97,15 +102,16 @@ class CommentControllerTest {
     @Test
     @DisplayName("댓글 수정 성공")
     void 댓글_수정_성공() throws Exception {
-        // Given
-        CommentUpdateRequest request = new CommentUpdateRequest("수정된 댓글 내용", 1L);
+        // given
+        CommentUpdateRequest request = new CommentUpdateRequest("수정된 댓글 내용", commentId);
         MemberEntity member = new MemberEntity("email", "password", "nickName");
         CommentEntity updatedComment = new CommentEntity("수정된 댓글 내용", null, member);
 
-        when(commentService.updateComment(any(CommentUpdateRequest.class), anyLong())).thenReturn(updatedComment);
+        when(commentService.updateComment(eq(articleId), eq(commentId), any(CommentUpdateRequest.class), eq(memberId)))
+                .thenReturn(updatedComment);
 
-        // When & Then
-        mockMvc.perform(patch("/comments/1")
+        // when & then
+        mockMvc.perform(patch("/articles/{articleId}/comments/{commentId}", articleId, commentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -116,8 +122,7 @@ class CommentControllerTest {
     @Test
     @DisplayName("댓글 삭제 성공")
     void 댓글_삭제_성공() throws Exception {
-        // When & Then
-        mockMvc.perform(delete("/comments/1"))
+        mockMvc.perform(delete("/articles/{articleId}/comments/{commentId}", articleId, commentId))
                 .andExpect(status().isNoContent());
     }
 }
