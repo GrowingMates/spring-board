@@ -17,11 +17,11 @@ public class JwtUtil {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final String COOKIE_NAME = "token";
     private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 60; // 1시간
+    private static final long REFRESH_TOKEN_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7일
 
     private final JwtProperties jwtProperties;
-    
+
     public String extractFromHeader(HttpServletRequest request) {
         String header = request.getHeader(AUTHORIZATION_HEADER);
         if (header != null && header.startsWith(BEARER_PREFIX)) {
@@ -30,27 +30,34 @@ public class JwtUtil {
         return null;
     }
 
-    public TokenWithExpiration generateTokenWithExpiration(String subject) {
-        return new TokenWithExpiration(generateToken(subject), ACCESS_TOKEN_EXPIRATION);
+    public TokenWithExpiration generateAccessToken(Long memberId) {
+        String token = generateToken(memberId, ACCESS_TOKEN_EXPIRATION);
+        return new TokenWithExpiration(token, ACCESS_TOKEN_EXPIRATION);
     }
 
-    public String generateToken(String email) {
+    public TokenWithExpiration generateRefreshToken(Long memberId) {
+        String token = generateToken(memberId, REFRESH_TOKEN_EXPIRATION);
+        return new TokenWithExpiration(token, REFRESH_TOKEN_EXPIRATION);
+    }
+
+    public String generateToken(Long memberId, long expirationTime) {
         return Jwts.builder()
-                .setSubject(email) // sub : 이메일(jwt 주인)
+                .setSubject(String.valueOf(memberId)) // sub : 이메일(jwt 주인)
                 .setIssuer(jwtProperties.getIssuer())  // Issuer 설정 (필수아님)
                 .setIssuedAt(new Date()) // 발급시간 (필수아님)
-                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION)) // 유효시간 필수!
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime)) // 유효시간 필수!
                 .signWith(Keys.hmacShaKeyFor(getSigningKey()), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String extractEmail(String token) {
-        return Jwts.parserBuilder()
+    public Long extractMemberIdFromToken(String token) {
+        String subject = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+        return Long.valueOf(subject);
     }
 
     public boolean isTokenValid(String token) {
@@ -66,6 +73,7 @@ public class JwtUtil {
     }
 
     private byte[] getSigningKey() {
-        return jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8);
+        return jwtProperties.getSecretKey()
+                .getBytes(StandardCharsets.UTF_8);
     }
 }

@@ -32,8 +32,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = jwtUtil.extractFromHeader(request);
         if (token != null && jwtUtil.isTokenValid(token)) {
-            String email = jwtUtil.extractEmail(token);
-            authUtil.saveAuthenticatedMember(email);
+            Long memberId = jwtUtil.extractMemberIdFromToken(token);
+            authUtil.saveAuthenticatedMember(memberId);
             filterChain.doFilter(request, response);
             return;
         }

@@ -7,10 +7,12 @@ import lombok.Getter;
 @Getter
 public class Member {
 
+    private final Long id;
     private final String email;
     private final String password;
 
     public Member(MemberEntity memberEntity) {
+        this.id = memberEntity.getId();
         this.email = memberEntity.getEmail();
         this.password = memberEntity.getPassword();
     }

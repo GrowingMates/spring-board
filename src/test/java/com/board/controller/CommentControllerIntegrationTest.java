@@ -1,12 +1,5 @@
 package com.board.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -24,6 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IntegrationTest
 class CommentControllerIntegrationTest {
@@ -55,7 +52,7 @@ class CommentControllerIntegrationTest {
     void setup() {
         member = memberRepository.save(new MemberEntity("test@example.com", "password", "nickname"));
         article = articleRepository.save(new ArticleEntity("title", "content", member));
-        jwtToken = "Bearer " + jwtUtil.generateToken(member.getEmail());
+        jwtToken = "Bearer " + jwtUtil.generateToken(member.getId(), 1000 * 60 * 60);
     }
 
     @Test

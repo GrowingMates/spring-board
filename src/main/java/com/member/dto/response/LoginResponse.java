@@ -1,12 +1,17 @@
 package com.member.dto.response;
 
+import com.config.jwt.TokenWithExpiration;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public class LoginResponse {
+    private final TokenWithExpiration accessToken;
+    private final TokenWithExpiration refreshToken;
 
-    private final String accessToken;
-    private final long expirationTime;
+    @Builder
+    public LoginResponse(TokenWithExpiration accessToken, TokenWithExpiration refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+    }
 }

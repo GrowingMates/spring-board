@@ -1,24 +1,24 @@
 package com.config.auth;
 
 
-import static com.config.auth.AuthConstants.AUTHENTICATED_USER;
-
 import com.exception.custom.ServerException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import static com.config.auth.AuthConstants.AUTHENTICATED_USER;
+
 @Component
 public class AuthUtil {
 
-    public void saveAuthenticatedMember(String email) {
+    public void saveAuthenticatedMember(Long memberId) {
         RequestAttributes requestAttributes = getRequestAttributes();
-        requestAttributes.setAttribute(AUTHENTICATED_USER, email, RequestAttributes.SCOPE_REQUEST);
+        requestAttributes.setAttribute(AUTHENTICATED_USER, memberId, RequestAttributes.SCOPE_REQUEST);
     }
 
-    public String getMemberEmail() {
+    public Long getMemberId() {
         RequestAttributes requestAttributes = getRequestAttributes();
-        return (String) requestAttributes.getAttribute(AUTHENTICATED_USER, RequestAttributes.SCOPE_REQUEST);
+        return (Long) requestAttributes.getAttribute(AUTHENTICATED_USER, RequestAttributes.SCOPE_REQUEST);
     }
 
     private RequestAttributes getRequestAttributes() {
@@ -27,9 +27,5 @@ public class AuthUtil {
             throw ServerException.getInstance();
         }
         return requestAttributes;
-    }
-
-    public boolean isAuthenticated() {
-        return getMemberEmail() != null;
     }
 }

@@ -38,12 +38,13 @@ class PublicMemberControllerIntegrationTest {
     String setUpMemberEmail = "setupMember@example.com";
     String setUpMemberPassword = "12345";
     String setUpMemberNickname = "setupMemberNickname";
+    Long setUpMemberId;
 
     @BeforeEach
     void setUp() {
         // 테스트용 회원 데이터 미리 저장
         MemberEntity member = new MemberEntity(setUpMemberEmail, setUpMemberPassword, setUpMemberNickname);
-        memberRepository.save(member);
+        setUpMemberId = memberRepository.save(member).getId();
     }
 
     @Test
@@ -70,14 +71,14 @@ class PublicMemberControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.accessToken.token").exists())
+                .andExpect(jsonPath("$.accessToken.token").isNotEmpty())
                 .andReturn();
 
         // JWT 추출 및 검증
         String responseBody = loginResult.getResponse().getContentAsString();
-        String token = objectMapper.readTree(responseBody).get("accessToken").asText();
-        assertThat(jwtUtil.extractEmail(token)).isEqualTo(setUpMemberEmail);
+        String token = objectMapper.readTree(responseBody).get("accessToken").get("token").asText();
+        assertThat(jwtUtil.extractMemberIdFromToken(token)).isEqualTo(setUpMemberId);
         assertThat(jwtUtil.isTokenValid(token)).isTrue();
     }
 
