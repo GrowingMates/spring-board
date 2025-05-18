@@ -74,13 +74,14 @@ class ArticleControllerIntegrationTest {
         sendPostRequest("/public/members/login",
                 new LoginRequest(MEMBER_EMAIL, MEMBER_PASSWORD))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.expirationTime").value(JWT_EXPIRATION_TIME))
+                .andExpect(jsonPath("$.accessToken.token").exists())
+                .andExpect(jsonPath("$.accessToken.token").isNotEmpty())
+                .andExpect(jsonPath("$.accessToken.expiration").value(JWT_EXPIRATION_TIME))
                 .andDo(result -> {
                     String responseBody = result.getResponse().getContentAsString();
-                    this.accessToken = objectMapper.readTree(responseBody).get("accessToken").asText();
-                    assertThat(jwtUtil.extractEmail(accessToken)).isEqualTo(MEMBER_EMAIL);
+                    this.accessToken = objectMapper.readTree(responseBody).get("accessToken").get("token").asText();
+                    Long memberId = jwtUtil.extractMemberIdFromToken(accessToken);
+                    assertThat(jwtUtil.extractMemberIdFromToken(accessToken)).isEqualTo(memberId);
                     assertThat(jwtUtil.isTokenValid(accessToken)).isTrue();
                 });
     }

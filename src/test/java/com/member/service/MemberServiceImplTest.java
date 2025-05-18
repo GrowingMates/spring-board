@@ -2,7 +2,11 @@ package com.member.service;
 
 import com.config.jwt.JwtUtil;
 import com.config.jwt.TokenWithExpiration;
+import com.config.jwt.token.RefreshToken;
+import com.config.jwt.token.RefreshTokenService;
+import com.exception.custom.InvalidToken;
 import com.exception.custom.LoginException;
+import com.exception.custom.MyEntityNotFoundException;
 import com.exception.custom.SignUpException;
 import com.member.dto.request.LoginRequest;
 import com.member.dto.request.SignUpRequest;
@@ -21,6 +25,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -33,6 +39,9 @@ class MemberServiceImplTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -89,15 +98,22 @@ class MemberServiceImplTest {
             // Given
             LoginRequest request = new LoginRequest("test@example.com", "1234");
             when(memberRepository.findByEmailAndIsDeletedFalse(request.getEmail())).thenReturn(Optional.of(member));
-            when(jwtUtil.generateTokenWithExpiration(any(String.class)))
-                    .thenReturn(new TokenWithExpiration("token", 3600000L));
+
+            TokenWithExpiration accessToken = new TokenWithExpiration("token", 3600000L);
+            TokenWithExpiration refreshToken = new TokenWithExpiration("refreshToken", 604800000L);
+
+            when(jwtUtil.generateAccessToken(any())).thenReturn(accessToken);
+            when(jwtUtil.generateRefreshToken(any())).thenReturn(refreshToken);
 
             // When
             LoginResponse response = memberService.login(request);
 
             // Then
             assertNotNull(response);
-            assertEquals("token", response.getAccessToken());
+            assertEquals("token", response.getAccessToken().getToken());
+            assertEquals(3600000L, response.getAccessToken().getExpiration());
+            assertEquals("refreshToken", response.getRefreshToken().getToken());
+            assertEquals(604800000L, response.getRefreshToken().getExpiration());
         }
 
         @Test
@@ -151,4 +167,54 @@ class MemberServiceImplTest {
         assertNotNull(foundMember);
         assertEquals("test@example.com", foundMember.getEmail());
     }
+
+    @Test
+    @DisplayName("유효한 리프래시 토큰으로 새 액세스 토큰 발급")
+    void reissueAccessToken_유효한리프래시토큰() {
+        // Given
+        Long memberId = 1L;
+        String refreshTokenValue = "validRefreshToken";
+        RefreshToken refreshToken = new RefreshToken(memberId, refreshTokenValue);
+        TokenWithExpiration newAccessToken = new TokenWithExpiration("newAccessToken", 3600L);
+
+        when(refreshTokenService.findByMemberId(memberId)).thenReturn(refreshToken);
+        when(jwtUtil.isTokenValid(refreshTokenValue)).thenReturn(true);
+        when(jwtUtil.generateAccessToken(memberId)).thenReturn(newAccessToken);
+
+        // When
+        LoginResponse response = memberService.reissueAccessToken(memberId);
+
+        // Then
+        assertThat(response.getAccessToken().getToken()).isEqualTo("newAccessToken");
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 리프래시 토큰으로 예외 발생")
+    void reissueAccessToken_유효하지않은리프래시토큰() {
+        // Given
+        Long memberId = 1L;
+        String refreshTokenValue = "invalidRefreshToken";
+        RefreshToken refreshToken = new RefreshToken(memberId, refreshTokenValue);
+
+        when(refreshTokenService.findByMemberId(memberId)).thenReturn(refreshToken);
+        when(jwtUtil.isTokenValid(refreshTokenValue)).thenReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> memberService.reissueAccessToken(memberId))
+                .isInstanceOf(InvalidToken.class);
+    }
+
+    @Test
+    @DisplayName("reissueAccessToken - 멤버 ID로 리프래시 토큰을 찾을 수 없을 때 MyEntityNotFoundException 발생")
+    void reissueAccessToken_리프래시토큰없음() {
+        // Given
+        Long memberId = 1L;
+        when(refreshTokenService.findByMemberId(memberId)).thenThrow(MyEntityNotFoundException.from(memberId));
+
+        // When & Then
+        assertThatThrownBy(() -> memberService.reissueAccessToken(memberId))
+                .isInstanceOf(MyEntityNotFoundException.class);
+    }
+
+
 }

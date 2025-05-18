@@ -1,6 +1,7 @@
 package com.member.controller;
 
 import com.config.auth.annotation.AuthenticatedMember;
+import com.member.dto.response.LoginResponse;
 import com.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,5 +27,11 @@ public class MemberController {
     public ResponseEntity<Void> withdraw(@AuthenticatedMember Long memberId) {
         memberService.withdraw(memberId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<LoginResponse> reissueToken(@AuthenticatedMember Long memberId) {
+        LoginResponse newAccessToken = memberService.reissueAccessToken(memberId);
+        return ResponseEntity.ok(newAccessToken);
     }
 }

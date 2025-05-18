@@ -20,4 +20,6 @@ public interface MemberService {
 
     void withdraw(Long memberId);
 
+    LoginResponse reissueAccessToken(Long refreshToken);
+
 }

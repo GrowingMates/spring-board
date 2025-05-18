@@ -2,10 +2,9 @@ package com.member.service;
 
 import com.config.jwt.JwtUtil;
 import com.config.jwt.TokenWithExpiration;
-import com.exception.custom.EmailNotFoundException;
-import com.exception.custom.LoginException;
-import com.exception.custom.MyEntityNotFoundException;
-import com.exception.custom.SignUpException;
+import com.config.jwt.token.RefreshToken;
+import com.config.jwt.token.RefreshTokenService;
+import com.exception.custom.*;
 import com.member.domain.Member;
 import com.member.dto.request.LoginRequest;
 import com.member.dto.request.SignUpRequest;
@@ -26,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
+    private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
 
     @Override
@@ -61,9 +61,14 @@ public class MemberServiceImpl implements MemberService {
         Member member = new Member(memberEntity);
         member.checkPassword(request.getPassword());
 
-        TokenWithExpiration tokenWithExpiration =
-                jwtUtil.generateTokenWithExpiration(member.getEmail());
-        return new LoginResponse(tokenWithExpiration.getToken(), tokenWithExpiration.getExpiration());
+        TokenWithExpiration accessToken =
+                jwtUtil.generateAccessToken(member.getId());
+        TokenWithExpiration refreshToken =
+                jwtUtil.generateRefreshToken(member.getId());
+
+        refreshTokenService.mergeToken(member.getId(), refreshToken.getToken());
+
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     @Override
@@ -78,7 +83,9 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> MyEntityNotFoundException.from(id));
     }
 
+    @Override
     public void logout(Long memberId) {
+        refreshTokenService.deleteToken(memberId);
         log.info("회원 {} 로그아웃함", memberId);
     }
 
@@ -86,5 +93,19 @@ public class MemberServiceImpl implements MemberService {
     public void withdraw(Long memberId) {
         MemberEntity member = findById(memberId);
         member.softDelete();
+    }
+
+    @Override
+    public LoginResponse reissueAccessToken(Long memberId) {
+        RefreshToken savedToken = refreshTokenService.findByMemberId(memberId);
+
+        if (!jwtUtil.isTokenValid(savedToken.getToken())) {
+            throw InvalidToken.getInstance();
+        }
+
+        TokenWithExpiration newAccessToken = jwtUtil.generateAccessToken(memberId);
+        return LoginResponse.builder()
+                .accessToken(newAccessToken)
+                .build(); // 리프래시 토큰은 줄 필요 없음
     }
 }

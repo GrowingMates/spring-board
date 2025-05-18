@@ -4,6 +4,7 @@ import com.board.dto.request.ArticleCreateRequest;
 import com.config.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.dto.request.LoginRequest;
+import com.member.dto.response.LoginResponse;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
 import com.support.IntegrationTest;
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,12 +40,14 @@ class MemberControllerIntegrationTest {
     String setUpMemberEmail = "setupMember@example.com";
     String setUpMemberPassword = "12345";
     String setUpMemberNickname = "setupMemberNickname";
+    Long setUpMemberId;
 
     @BeforeEach
     void setUp() {
         // 테스트용 회원 데이터 미리 저장
         MemberEntity member = new MemberEntity(setUpMemberEmail, setUpMemberPassword, setUpMemberNickname);
-        memberRepository.save(member);
+        MemberEntity save = memberRepository.save(member);
+        setUpMemberId = save.getId();
     }
 
     @Test
@@ -126,6 +130,59 @@ class MemberControllerIntegrationTest {
                 .andReturn();
 
         String responseBody = result.getResponse().getContentAsString();
-        return objectMapper.readTree(responseBody).get("accessToken").asText(); // JWT 토큰 쿠키 값 반환
+        return objectMapper.readTree(responseBody)
+                .get("accessToken")
+                .get("token")
+                .asText(); // JWT 토큰 쿠키 값 반환
+    }
+
+    @Test
+    @DisplayName("만료된_엑세스_토큰으로_요청시_401_응답")
+    void 만료된_엑세스_토큰으로_요청시_401_응답() throws Exception {
+        // Given: 3초짜리 만료 토큰 생성
+        String expiredSoonToken = jwtUtil.generateToken(setUpMemberId, 1); // 3초
+
+        // 3초 대기
+        Thread.sleep(5);
+
+        // When: 인증 필요한 요청 시도
+        mockMvc.perform(post("/articles")
+                        .header("Authorization", "Bearer " + expiredSoonToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ArticleCreateRequest("제목", "내용"))))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("만료된_엑세스_토큰으로_재발급_요청시_401_응답")
+    void 만료된_엑세스_토큰으로_재발급_요청시_401_응답() throws Exception {
+        // Given
+        String expiredSoonToken = jwtUtil.generateToken(setUpMemberId, 1); // 3초 뒤 만료되는 토큰 생성
+        Thread.sleep(5);
+
+        // When
+        mockMvc.perform(post("/members/reissue")
+                        .header("Authorization", "Bearer " + expiredSoonToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("유효한_엑세스_토큰으로_재발급_요청시_새로운_엑세스_토큰_반환")
+    void 유효한_엑세스_토큰으로_재발급_요청시_성공() throws Exception {
+        // Given
+        String validToken = getAccessToken();
+
+        // When
+        MvcResult result = mockMvc.perform(post("/members/reissue")
+                        .header("Authorization", "Bearer " + validToken))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // Then
+        String responseBody = result.getResponse().getContentAsString();
+        LoginResponse loginResponse = objectMapper.readValue(responseBody, LoginResponse.class);
+        assertThat(loginResponse.getAccessToken()).isNotNull();
+        assertThat(loginResponse.getAccessToken().getToken()).isNotBlank();
+        assertThat(loginResponse.getAccessToken().getExpiration()).isGreaterThan(0L);
     }
 }

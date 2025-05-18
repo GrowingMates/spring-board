@@ -11,7 +11,8 @@ public enum ErrorCodeType implements ErrorType {
     AUTHORIZATION_ERROR("AUTHORIZATION_ERROR", "권한 없음", HttpStatus.FORBIDDEN),
     SYSTEM_ERROR("SYSTEM_ERROR", "시스템 오류", HttpStatus.INTERNAL_SERVER_ERROR),
     DUPLICATE("SIGNUP_DUPLICATE", "중복발생", HttpStatus.CONFLICT),
-    MISMATCHED_DATA("MISMATCHED_DATA", "일치하지 않는 데이터", HttpStatus.BAD_REQUEST);
+    MISMATCHED_DATA("MISMATCHED_DATA", "일치하지 않는 데이터", HttpStatus.BAD_REQUEST),
+    INVALID_REFRESH_TOKEN("INVALID_REFRESH_TOKEN", "유효하지 않은 리프레시 토큰", HttpStatus.UNAUTHORIZED);
 
     private final String code;
     private final String message;
