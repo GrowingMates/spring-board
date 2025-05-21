@@ -1,5 +1,12 @@
 package com.board.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -10,7 +17,7 @@ import com.config.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
-import com.support.IntegrationTest;
+import com.support.CleanDatabaseBeforeEachTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,12 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@IntegrationTest
-class CommentControllerIntegrationTest {
+class CommentControllerIntegrationTest extends CleanDatabaseBeforeEachTest {
 
     @Autowired
     private MockMvc mockMvc;

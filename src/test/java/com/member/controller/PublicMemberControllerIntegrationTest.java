@@ -1,12 +1,17 @@
 package com.member.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.config.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.dto.request.LoginRequest;
 import com.member.dto.request.SignUpRequest;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
-import com.support.IntegrationTest;
+import com.support.CleanDatabaseBeforeEachTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,13 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@IntegrationTest
-class PublicMemberControllerIntegrationTest {
+class PublicMemberControllerIntegrationTest extends CleanDatabaseBeforeEachTest {
 
     @Autowired
     private MockMvc mockMvc;

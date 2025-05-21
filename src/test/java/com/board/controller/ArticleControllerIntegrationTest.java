@@ -1,5 +1,14 @@
 package com.board.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -11,7 +20,7 @@ import com.member.dto.request.LoginRequest;
 import com.member.dto.request.SignUpRequest;
 import com.member.entity.MemberEntity;
 import com.member.repository.MemberRepository;
-import com.support.IntegrationTest;
+import com.support.CleanDatabaseBeforeEachTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,14 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@IntegrationTest
-class ArticleControllerIntegrationTest {
+class ArticleControllerIntegrationTest extends CleanDatabaseBeforeEachTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -130,6 +132,7 @@ class ArticleControllerIntegrationTest {
 
         // 게시물 1개 삭제
         article3.softDelete();
+        articleRepository.save(article3);
 
         // When: 전체 조회 요청
         mockMvc.perform(get("/articles").param("page", "0").param("size", "10"))

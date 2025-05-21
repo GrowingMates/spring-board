@@ -4,7 +4,11 @@ import com.config.jwt.JwtUtil;
 import com.config.jwt.TokenWithExpiration;
 import com.config.jwt.token.RefreshToken;
 import com.config.jwt.token.RefreshTokenService;
-import com.exception.custom.*;
+import com.exception.custom.EmailNotFoundException;
+import com.exception.custom.InvalidToken;
+import com.exception.custom.LoginException;
+import com.exception.custom.MyEntityNotFoundException;
+import com.exception.custom.SignUpException;
 import com.member.domain.Member;
 import com.member.dto.request.LoginRequest;
 import com.member.dto.request.SignUpRequest;
@@ -54,6 +58,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         MemberEntity memberEntity = memberRepository.findByEmailAndIsDeletedFalse(request.getEmail())
                 .orElseThrow(() -> LoginException.from(ErrorMessage.NOT_CORRECT_LOGIN));
@@ -84,6 +89,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public void logout(Long memberId) {
         refreshTokenService.deleteToken(memberId);
         log.info("회원 {} 로그아웃함", memberId);
