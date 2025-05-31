@@ -4,18 +4,14 @@ import com.common.entity.SoftDeletedEntity;
 import com.exception.custom.DifferentOwnerException;
 import com.exception.custom.NotIncludeBoardException;
 import com.member.entity.MemberEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -38,18 +34,37 @@ public class CommentEntity extends SoftDeletedEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity member;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private CommentEntity parent;
+
+    @OneToMany(mappedBy = "parent")
+    private List<CommentEntity> children = new ArrayList<>();
+
     public CommentEntity(String content, ArticleEntity article, MemberEntity member) {
         this.content = content;
         this.article = article;
         this.member = member;
     }
 
-    @Builder
     public CommentEntity(Long id, String content, ArticleEntity article, MemberEntity member) {
         this.id = id;
         this.content = content;
         this.article = article;
         this.member = member;
+    }
+
+    @Builder
+    public CommentEntity(Long id, String content, ArticleEntity article, MemberEntity member, CommentEntity parent) {
+        this.id = id;
+        this.content = content;
+        this.article = article;
+        this.member = member;
+        this.parent = parent;
+    }
+
+    public boolean isReply() {
+        return parent != null;
     }
 
     public void validateOwner(MemberEntity member) {

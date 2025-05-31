@@ -15,15 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -38,10 +30,7 @@ public class CommentController {
                                                                          @RequestParam(defaultValue = "10") int size,
                                                                          @RequestParam(defaultValue = "latest") String sort) {
         Pageable pageable = PageRequest.of(page, size, SortUtils.getCommentSort(sort));
-        Page<CommentResponse> commentPage = commentService.findAllComments(articleId, pageable)
-                .map(CommentResponse::new);
-
-        return ResponseEntity.ok(PageResponse.from(commentPage));
+        return ResponseEntity.ok(PageResponse.from(commentService.findAllTopLevelComments(articleId, pageable)));
     }
 
     @PostMapping
@@ -51,7 +40,7 @@ public class CommentController {
         CommentEntity savedComment = commentService.createComment(articleId, request, memberId);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new CommentResponse(savedComment));
+                .body(CommentResponse.of(savedComment, 0));
     }
 
     @PatchMapping("/{commentId}")
@@ -60,8 +49,10 @@ public class CommentController {
                                                          @Valid @RequestBody CommentUpdateRequest request,
                                                          @AuthenticatedMember Long memberId) {
         CommentEntity updatedComment = commentService.updateComment(articleId, commentId, request, memberId);
+        int replyCount = commentService.getReplyCount(updatedComment);
+
         return ResponseEntity.ok()
-                .body(new CommentResponse(updatedComment));
+                .body(CommentResponse.of(updatedComment, replyCount));
     }
 
     @DeleteMapping("/{commentId}")
@@ -71,5 +62,16 @@ public class CommentController {
         commentService.deleteComment(articleId, commentId, memberId);
         return ResponseEntity.noContent()
                 .build();
+    }
+
+    @GetMapping("/{commentId}/replies")
+    public ResponseEntity<PageResponse<CommentResponse>> findReplies(@PathVariable Long articleId,
+                                                                     @PathVariable Long commentId,
+                                                                     @RequestParam(defaultValue = "0") int page,
+                                                                     @RequestParam(defaultValue = "10") int size,
+                                                                     @RequestParam(defaultValue = "oldest") String sort) {
+        Pageable pageable = PageRequest.of(page, size, SortUtils.getCommentSort(sort));
+        Page<CommentEntity> replies = commentService.findReplies(commentId, pageable);
+        return ResponseEntity.ok(PageResponse.from(replies.map(CommentResponse::fromReply)));
     }
 }

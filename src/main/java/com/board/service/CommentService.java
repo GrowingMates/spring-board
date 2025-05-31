@@ -2,6 +2,7 @@ package com.board.service;
 
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
+import com.board.dto.response.CommentResponse;
 import com.board.entity.ArticleEntity;
 import com.board.entity.CommentEntity;
 import com.board.repository.CommentRepository;
@@ -23,15 +24,41 @@ public class CommentService {
     private final ArticleService articleService;
     private final MemberService memberService;
 
-    public Page<CommentEntity> findAllComments(Long articleId, Pageable pageable) {
+    public Page<CommentResponse> findAllTopLevelComments(Long articleId, Pageable pageable) {
         ArticleEntity article = articleService.findById(articleId);
-        return commentRepository.findByArticleAndIsDeletedFalse(article, pageable);
+        Page<CommentEntity> comments = commentRepository.findByArticleAndParentIsNullAndIsDeletedFalse(article, pageable);
+        return comments.map(comment -> CommentResponse.of(comment, getReplyCount(comment)));
+    }
+
+    public int getReplyCount(CommentEntity comment) {
+        return commentRepository.countByParentAndIsDeletedFalse(comment);
     }
 
     @Transactional
     public CommentEntity createComment(Long articleId, CommentCreateRequest request, Long memberId) {
         ArticleEntity article = articleService.findById(articleId);
         MemberEntity member = findMemberById(memberId);
+
+        if (request.getParentId() != null) {
+            CommentEntity parent = findComment(request.getParentId());
+
+            if (parent.isReply()) {
+                throw new IllegalArgumentException("대댓글에는 대댓글을 달 수 없습니다");
+            }
+
+            if (!parent.getArticle().getId().equals(articleId)) {
+                throw new IllegalArgumentException("부모 댓글이 해당 게시글에 속하지 않습니다");
+            }
+
+            CommentEntity comment = CommentEntity.builder()
+                    .content(request.getContent())
+                    .article(article)
+                    .member(member)
+                    .parent(parent)
+                    .build();
+            return commentRepository.save(comment);
+        }
+
         CommentEntity comment = new CommentEntity(request.getContent(), article, member);
         return commentRepository.save(comment);
     }
@@ -60,5 +87,13 @@ public class CommentService {
 
     private MemberEntity findMemberById(Long memberId) {
         return memberService.findById(memberId);
+    }
+
+    public Page<CommentEntity> findReplies(Long parentId, Pageable pageable) {
+        CommentEntity parent = findComment(parentId);
+        if (parent.isReply()) {
+            throw new IllegalArgumentException("대댓글에는 대댓글이 없습니다.");
+        }
+        return commentRepository.findByParentAndIsDeletedFalse(parent, pageable);
     }
 }

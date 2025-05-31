@@ -12,8 +12,15 @@ public class CommentCreateRequest {
     @NotBlank(message = "내용을 입력해주세요")
     private String content;
 
-    @Builder
+    private Long parentId;
+
     public CommentCreateRequest(String content) {
         this.content = content;
+    }
+
+    @Builder
+    public CommentCreateRequest(String content, Long parentId) {
+        this.content = content;
+        this.parentId = parentId;
     }
 }
