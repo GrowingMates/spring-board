@@ -1,13 +1,8 @@
 package com.board.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
+import com.board.dto.response.CommentResponse;
 import com.board.entity.ArticleEntity;
 import com.board.entity.CommentEntity;
 import com.board.repository.CommentRepository;
@@ -16,8 +11,6 @@ import com.exception.custom.MyEntityNotFoundException;
 import com.exception.custom.NotIncludeBoardException;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +22,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -67,15 +67,15 @@ class CommentServiceTest {
         Page<CommentEntity> commentPage = new PageImpl<>(comments, pageable, comments.size());
 
         when(articleService.findById(articleId)).thenReturn(testArticle);
-        when(commentRepository.findByArticleAndIsDeletedFalse(testArticle, pageable)).thenReturn(commentPage);
+        when(commentRepository.findByArticleAndParentIsNullAndIsDeletedFalse(testArticle, pageable)).thenReturn(commentPage);
 
         // When
-        Page<CommentEntity> result = commentService.findAllComments(articleId, pageable);
+        Page<CommentResponse> result = commentService.findAllTopLevelComments(articleId, pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getContent()).isEqualTo(testComment.getContent());
-        assertThat(result.getContent().get(0).getMember().getId()).isEqualTo(testMember.getId());
+        assertThat(result.getContent().get(0).getAuthorId()).isEqualTo(testMember.getId());
     }
 
     @Test
@@ -86,7 +86,7 @@ class CommentServiceTest {
         when(articleService.findById(articleId)).thenThrow(MyEntityNotFoundException.class);
 
         // When & Then
-        assertThatThrownBy(() -> commentService.findAllComments(articleId, pageable))
+        assertThatThrownBy(() -> commentService.findAllTopLevelComments(articleId, pageable))
                 .isInstanceOf(MyEntityNotFoundException.class);
     }
 
@@ -250,5 +250,111 @@ class CommentServiceTest {
         // when & then
         assertThatThrownBy(() -> commentService.updateComment(articleId, commentId, request, anotherMember.getId()))
                 .isInstanceOf(DifferentOwnerException.class);
+    }
+
+    @Test
+    @DisplayName("전체 댓글 조회 시 각 댓글의 대댓글 수를 정확히 조회한다.")
+    void 전체댓글조회시_대댓글수_정확조회() {
+        // Given
+        CommentEntity reply1 = new CommentEntity(10L, "대댓글1", testArticle, testMember, testComment);
+        Pageable pageable = PageRequest.of(0, 10);
+        List<CommentEntity> comments = List.of(testComment);
+        Page<CommentEntity> commentPage = new PageImpl<>(comments, pageable, comments.size());
+
+        when(articleService.findById(articleId)).thenReturn(testArticle);
+        when(commentRepository.findByArticleAndParentIsNullAndIsDeletedFalse(testArticle, pageable)).thenReturn(commentPage);
+        when(commentRepository.countByParentAndIsDeletedFalse(testComment)).thenReturn(5);
+
+        // When
+        Page<CommentResponse> result = commentService.findAllTopLevelComments(articleId, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getReplyCount()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("댓글의 대댓글 수를 정확히 조회한다.")
+    void 대댓글수_정확조회() {
+        // Given
+        when(commentRepository.countByParentAndIsDeletedFalse(testComment)).thenReturn(3);
+
+        // When
+        int replyCount = commentService.getReplyCount(testComment);
+
+        // Then
+        assertThat(replyCount).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("대댓글에 대댓글을 작성하려고 하면 예외가 발생한다.")
+    void 대댓글에_대댓글작성_예외() {
+        // Given
+        CommentEntity parentReply = new CommentEntity(99L, "부모 대댓글", testArticle, testMember, testComment);
+
+        CommentCreateRequest request = new CommentCreateRequest("대댓글의 대댓글", parentReply.getId());
+        when(articleService.findById(articleId)).thenReturn(testArticle);
+        when(memberService.findById(memberId)).thenReturn(testMember);
+        when(commentRepository.findByIdAndIsDeletedFalse(parentReply.getId())).thenReturn(Optional.of(parentReply));
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.createComment(articleId, request, memberId))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("댓글에 대댓글을 작성하고, 정상적으로 저장된다.")
+    void 대댓글_작성_성공() {
+        // Given
+        CommentCreateRequest request = new CommentCreateRequest("대댓글 내용", testComment.getId());
+        CommentEntity reply = new CommentEntity(20L, "대댓글 내용", testArticle, testMember, testComment);
+
+        when(articleService.findById(articleId)).thenReturn(testArticle);
+        when(memberService.findById(memberId)).thenReturn(testMember);
+        when(commentRepository.findByIdAndIsDeletedFalse(testComment.getId())).thenReturn(Optional.of(testComment));
+        when(commentRepository.save(any(CommentEntity.class))).thenReturn(reply);
+
+        // When
+        CommentEntity result = commentService.createComment(articleId, request, memberId);
+
+        // Then
+        assertThat(result.getContent()).isEqualTo("대댓글 내용");
+        assertThat(result.getParent()).isEqualTo(testComment);
+    }
+
+    @Test
+    @DisplayName("부모 댓글이 다른 게시글에 속하면 예외가 발생한다.")
+    void 부모댓글이_다른게시글이면_예외() {
+        // Given
+        ArticleEntity otherArticle = new ArticleEntity(2L, "다른 글", "내용", testMember, 0);
+        CommentEntity otherComment = new CommentEntity(200L, "다른 글의 댓글", otherArticle, testMember);
+        CommentCreateRequest request = new CommentCreateRequest("잘못된 대댓글", otherComment.getId());
+
+        when(articleService.findById(articleId)).thenReturn(testArticle);
+        when(memberService.findById(memberId)).thenReturn(testMember);
+        when(commentRepository.findByIdAndIsDeletedFalse(otherComment.getId())).thenReturn(Optional.of(otherComment));
+
+        // When & Then
+        assertThatThrownBy(() -> commentService.createComment(articleId, request, memberId))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("대댓글 목록을 페이지 단위로 조회한다.")
+    void 대댓글_리스트_조회() {
+        // Given
+        CommentEntity reply1 = new CommentEntity(301L, "대댓글1", testArticle, testMember, testComment);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<CommentEntity> replyPage = new PageImpl<>(List.of(reply1), pageable, 1);
+
+        when(commentRepository.findByIdAndIsDeletedFalse(testComment.getId())).thenReturn(Optional.of(testComment));
+        when(commentRepository.findByParentAndIsDeletedFalse(testComment, pageable)).thenReturn(replyPage);
+
+        // When
+        Page<CommentEntity> result = commentService.findReplies(testComment.getId(), pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getContent()).isEqualTo("대댓글1");
     }
 }

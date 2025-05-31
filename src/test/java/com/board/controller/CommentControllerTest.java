@@ -1,24 +1,14 @@
 package com.board.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
+import com.board.dto.response.CommentResponse;
 import com.board.entity.ArticleEntity;
 import com.board.entity.CommentEntity;
 import com.board.service.CommentService;
 import com.config.auth.AuthenticatedMemberArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.entity.MemberEntity;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,9 +16,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CommentController.class)
 class CommentControllerTest {
@@ -86,8 +86,9 @@ class CommentControllerTest {
                 new CommentEntity("내용1", article, member),
                 new CommentEntity("내용2", article, member));
         Page<CommentEntity> pageResult = new PageImpl<>(comments);
+        Page<CommentResponse> response = pageResult.map(comment -> CommentResponse.of(comment, 0));
 
-        when(commentService.findAllComments(eq(articleId), any())).thenReturn(pageResult);
+        when(commentService.findAllTopLevelComments(eq(articleId), any())).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/articles/{articleId}/comments", articleId)
@@ -124,5 +125,30 @@ class CommentControllerTest {
     void 댓글_삭제_성공() throws Exception {
         mockMvc.perform(delete("/articles/{articleId}/comments/{commentId}", articleId, commentId))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("대댓글 목록 조회 성공")
+    void 대댓글_목록_조회_성공() throws Exception {
+        // given
+        MemberEntity member = new MemberEntity("email", "password", "nickname");
+        ArticleEntity article = new ArticleEntity("title", "content", member);
+
+        CommentEntity reply1 = new CommentEntity("대댓글1", article, member);
+        CommentEntity reply2 = new CommentEntity("대댓글2", article, member);
+        Page<CommentEntity> replies = new PageImpl<>(List.of(reply1, reply2));
+
+        when(commentService.findReplies(eq(commentId), any(Pageable.class)))
+                .thenReturn(replies);
+
+        // when & then
+        mockMvc.perform(get("/articles/{articleId}/comments/{commentId}/replies", articleId, commentId)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("sort", "oldest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].content").value("대댓글1"))
+                .andExpect(jsonPath("$.content[1].authorName").value("nickname"));
     }
 }

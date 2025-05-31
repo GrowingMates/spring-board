@@ -1,12 +1,5 @@
 package com.board.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.CommentCreateRequest;
 import com.board.dto.request.CommentUpdateRequest;
 import com.board.entity.ArticleEntity;
@@ -24,6 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class CommentControllerIntegrationTest extends CleanDatabaseBeforeEachTest {
 
@@ -119,5 +116,31 @@ class CommentControllerIntegrationTest extends CleanDatabaseBeforeEachTest {
         mockMvc.perform(delete("/articles/" + article.getId() + "/comments/" + comment.getId())
                         .header(AUTHORIZATION_HEADER, jwtToken)) // JWT 인증 헤더 추가
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("대댓글_목록_조회_성공")
+    void 대댓글_목록_조회_성공() throws Exception {
+        // Given
+        CommentEntity comment = commentRepository.save(new CommentEntity("부모 댓글", article, member));
+        CommentEntity childComment1 = commentRepository.save(CommentEntity.builder()
+                .content("대댓글 1")
+                .article(article)
+                .member(member)
+                .parent(comment)
+                .build());
+        CommentEntity childComment2 = commentRepository.save(CommentEntity.builder()
+                .content("대댓글 2")
+                .article(article)
+                .member(member)
+                .parent(comment)
+                .build());
+
+        // When & Then
+        mockMvc.perform(get("/articles/{articleId}/comments/{commentId}/replies", article.getId(), comment.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].content").value("대댓글 1"))
+                .andExpect(jsonPath("$.content[1].content").value("대댓글 2"));
     }
 }
