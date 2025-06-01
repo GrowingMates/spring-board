@@ -7,11 +7,16 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+  
+  data:
+    redis:
+      host: localhost
+      port: 6380 #테스트용 다른 포트
 
 jwt:
   issuer: test-issuer
