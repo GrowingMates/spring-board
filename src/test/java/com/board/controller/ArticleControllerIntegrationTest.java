@@ -1,18 +1,10 @@
 package com.board.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.entity.ArticleEntity;
 import com.board.repository.ArticleRepository;
+import com.board.service.cache.ArticleViewCountCacheService;
 import com.config.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -31,6 +23,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 class ArticleControllerIntegrationTest extends CleanDatabaseBeforeEachTest {
 
     @Autowired
@@ -47,6 +45,9 @@ class ArticleControllerIntegrationTest extends CleanDatabaseBeforeEachTest {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private ArticleViewCountCacheService viewCountCacheService;
 
     @Value("${jwt.secret_key}")
     private String secretKey;
@@ -230,4 +231,25 @@ class ArticleControllerIntegrationTest extends CleanDatabaseBeforeEachTest {
 
         return JsonPath.parse(mvcResult.getResponse().getContentAsString()).read("$.id", Long.class);
     }
+
+    @Test
+    @DisplayName("게시글 조회 시 Redis 캐시의 조회수가 증가한다")
+    void 게시글_조회시_조회수_캐시_증가() throws Exception {
+        // given
+        MemberEntity member = createAndSaveMember("viewer@test.com", "viewer");
+        ArticleEntity article = articleRepository.save(new ArticleEntity("조회수 테스트 제목", "조회수 테스트 내용", member));
+        Long articleId = article.getId();
+
+        // when
+        for (int i = 0; i < 3; i++) {
+            mockMvc.perform(get("/articles/" + articleId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.title").value("조회수 테스트 제목"));
+        }
+
+        // then
+        long viewCount = viewCountCacheService.getViewCount(articleId);
+        assertThat(viewCount).isEqualTo(3L);
+    }
+
 }

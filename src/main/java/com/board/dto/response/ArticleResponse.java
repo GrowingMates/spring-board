@@ -38,4 +38,14 @@ public class ArticleResponse {
                 article.getMember().getId(),
                 article.getViewCount());
     }
+
+    public static ArticleResponse from(ArticleEntity article, long viewCount) {
+        return new ArticleResponse(
+                article.getId(),
+                article.getTitle(),
+                article.getContent(),
+                article.getMember().getId(),
+                viewCount
+        );
+    }
 }

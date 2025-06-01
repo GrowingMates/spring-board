@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 public interface ArticleRepository extends JpaRepository<ArticleEntity, Long> {
     Page<ArticleEntity> findAllByIsDeletedFalse(Pageable pageable);
 
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE ArticleEntity a SET a.viewCount = a.viewCount + 1 WHERE a.id = :id")
-    void increaseViewCount(@Param("id") Long id);
+    @Modifying(clearAutomatically = true) // 현재 안씀
+    @Query("UPDATE ArticleEntity a SET a.viewCount = a.viewCount + :count WHERE a.id = :id")
+    void increaseViewCount(@Param("id") Long id, @Param("count") long count);
 }

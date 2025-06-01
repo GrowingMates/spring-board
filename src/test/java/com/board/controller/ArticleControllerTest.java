@@ -1,24 +1,15 @@
 package com.board.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
 import com.board.dto.response.ArticleResponse;
 import com.board.entity.ArticleEntity;
 import com.board.service.ArticleService;
+import com.board.service.cache.ArticleViewCountCacheService;
 import com.config.auth.AuthenticatedMemberArgumentResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
-import java.util.List;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +20,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ArticleController.class)
 class ArticleControllerTest {
@@ -41,6 +40,9 @@ class ArticleControllerTest {
 
     @MockitoBean
     private MemberService memberService;
+
+    @MockitoBean
+    private ArticleViewCountCacheService viewCountCacheService;
 
     @MockitoBean
     private AuthenticatedMemberArgumentResolver authenticatedMemberArgumentResolver;
@@ -134,7 +136,7 @@ class ArticleControllerTest {
                 .viewCount(0L) // 초기 조회수 설정
                 .build();
 
-        when(articleService.findByIdAndIncreaseViewCount(1L)).thenReturn(article);
+        when(articleService.findById(1L)).thenReturn(article);
 
         // When & Then
         mockMvc.perform(get("/articles/1"))

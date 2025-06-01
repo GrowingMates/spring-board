@@ -48,8 +48,8 @@ public class ArticleEntity extends SoftDeletedEntity {
         this.viewCount = viewCount;
     }
 
-    public void increaseViewCount() {
-        this.viewCount++;
+    public void increaseViewCount(long viewCount) {
+        this.viewCount += viewCount;
     }
 
     public void update(String title, String content) {

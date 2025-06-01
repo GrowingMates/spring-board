@@ -35,12 +35,6 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleEntity findByIdAndIncreaseViewCount(Long id) {
-        articleRepository.increaseViewCount(id);
-        return findById(id);
-    }
-
-    @Transactional
     public void delete(Long id, Long memberId) {
         getOwnedArticle(id, memberId).softDelete();
     }
@@ -57,6 +51,12 @@ public class ArticleService {
         MemberEntity member = findMemberById(memberId);
         article.validateOwner(member);
         return article;
+    }
+
+    @Transactional
+    public void incrementViewCount(Long articleId, long viewCount) {
+        ArticleEntity article = findById(articleId);
+        article.increaseViewCount(viewCount);
     }
 
     public ArticleEntity findById(Long id) {
