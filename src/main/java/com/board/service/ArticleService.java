@@ -2,8 +2,10 @@ package com.board.service;
 
 import com.board.dto.request.ArticleCreateRequest;
 import com.board.dto.request.ArticleUpdateRequest;
+import com.board.dto.response.ArticleResponse;
 import com.board.entity.ArticleEntity;
 import com.board.repository.ArticleRepository;
+import com.board.service.cache.ArticleViewCountCacheService;
 import com.exception.custom.MyEntityNotFoundException;
 import com.member.entity.MemberEntity;
 import com.member.service.MemberService;
@@ -20,6 +22,7 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final MemberService memberService;
+    private final ArticleViewCountCacheService viewCountCacheService;
 
     @Transactional
     public ArticleEntity save(ArticleCreateRequest request, Long memberId) {
@@ -37,6 +40,7 @@ public class ArticleService {
     @Transactional
     public void delete(Long id, Long memberId) {
         getOwnedArticle(id, memberId).softDelete();
+        viewCountCacheService.reset(id);
     }
 
     @Transactional
@@ -51,6 +55,13 @@ public class ArticleService {
         MemberEntity member = findMemberById(memberId);
         article.validateOwner(member);
         return article;
+    }
+
+    public ArticleResponse getArticleWithViewCount(Long articleId) {
+        ArticleEntity article = findById(articleId);
+        viewCountCacheService.increase(articleId);
+        long totalViewCount = article.getViewCount() + viewCountCacheService.getViewCount(articleId);
+        return ArticleResponse.from(article, totalViewCount);
     }
 
     @Transactional

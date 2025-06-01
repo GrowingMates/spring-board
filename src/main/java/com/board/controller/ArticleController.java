@@ -5,7 +5,6 @@ import com.board.dto.request.ArticleUpdateRequest;
 import com.board.dto.response.ArticleResponse;
 import com.board.entity.ArticleEntity;
 import com.board.service.ArticleService;
-import com.board.service.cache.ArticleViewCountCacheService;
 import com.config.auth.annotation.AuthenticatedMember;
 import com.util.page.PageResponse;
 import com.util.sort.SortUtils;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 public class ArticleController {
 
     private final ArticleService articleService;
-    private final ArticleViewCountCacheService viewCountCacheService;
 
     @PostMapping("")
     public ResponseEntity<ArticleResponse> addArticle(@Valid @RequestBody ArticleCreateRequest request,
@@ -50,18 +48,15 @@ public class ArticleController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ArticleResponse> findArticle(@PathVariable long id) {
-        ArticleEntity article = articleService.findById(id);
-        viewCountCacheService.increase(id);
-
+        ArticleResponse articleWithViewCount = articleService.getArticleWithViewCount(id);
         return ResponseEntity.ok()
-                .body(ArticleResponse.from(article, viewCountCacheService.getViewCount(id)));
+                .body(articleWithViewCount);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteArticle(@PathVariable long id,
                                               @AuthenticatedMember Long memberId) {
         articleService.delete(id, memberId);
-
         return ResponseEntity.noContent()
                 .build();
     }
